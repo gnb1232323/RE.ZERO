@@ -9,6 +9,7 @@ import {
   ContactsIcon,
   KanbanIcon,
   TasksIcon,
+  FinanceIcon,
   SettingsIcon,
   LogoutIcon,
   MenuIcon,
@@ -20,6 +21,7 @@ const links = [
   { href: "/contacts", label: "Контакты", icon: ContactsIcon },
   { href: "/contacts/kanban", label: "Канбан", icon: KanbanIcon },
   { href: "/tasks", label: "Задачи", icon: TasksIcon },
+  { href: "/finance", label: "Финансы", icon: FinanceIcon },
   { href: "/settings", label: "Настройки", icon: SettingsIcon },
 ];
 

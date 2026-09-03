@@ -130,6 +130,18 @@ export function TrendUpIcon({ className = base }: IconProps) {
   );
 }
 
+export function FinanceIcon({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 16.5V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 16.5H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="5.5" y="11" width="2.6" height="5.5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="10.2" y="7.5" width="2.6" height="9" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14.9" y="4" width="2.1" height="12.5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
