@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { TaskList } from "@/components/tasks/task-list";
 
 export default async function TasksPage() {
-  const [openTasks, doneTasks] = await Promise.all([
+  const [openTasks, doneTasks, users] = await Promise.all([
     prisma.task.findMany({
       where: { status: "OPEN" },
       include: { assignedTo: { select: { name: true } }, contact: { select: { id: true, fullName: true } } },
@@ -14,6 +14,7 @@ export default async function TasksPage() {
       orderBy: { completedAt: "desc" },
       take: 30,
     }),
+    prisma.user.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -24,11 +25,11 @@ export default async function TasksPage() {
       </div>
       <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
         <h2 className="mb-3 text-sm font-semibold text-ink-800">Открытые задачи</h2>
-        <TaskList tasks={openTasks} />
+        <TaskList tasks={openTasks} users={users} />
       </section>
       <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
         <h2 className="mb-3 text-sm font-semibold text-ink-800">Недавно выполненные</h2>
-        <TaskList tasks={doneTasks} />
+        <TaskList tasks={doneTasks} users={users} />
       </section>
     </div>
   );

@@ -96,7 +96,7 @@ export default async function ContactDetailPage({
             </h2>
             <div className="space-y-3">
               <TaskForm contactId={contact.id} users={users} />
-              <TaskList tasks={tasks} />
+              <TaskList tasks={tasks} users={users} />
             </div>
           </section>
 
