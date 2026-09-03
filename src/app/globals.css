@@ -1,8 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f2;
+  --foreground: #2b2a24;
+
+  /* Brand palette: khaki (warm neutral), purple (primary), bright green (success/accent) */
+  --color-khaki-50: #faf8f2;
+  --color-khaki-100: #f3efe0;
+  --color-khaki-200: #e6ddbf;
+  --color-khaki-300: #d3c495;
+  --color-khaki-400: #bfa96e;
+  --color-khaki-500: #a68f52;
+  --color-khaki-600: #86723f;
+  --color-khaki-700: #665834;
+
+  --color-brand-50: #f4f0fe;
+  --color-brand-100: #e6dcfd;
+  --color-brand-200: #cdb8fb;
+  --color-brand-300: #ab8bf5;
+  --color-brand-400: #8c62ec;
+  --color-brand-500: #7440dd;
+  --color-brand-600: #6229c4;
+  --color-brand-700: #4f1fa0;
+  --color-brand-800: #401a7f;
+
+  --color-lime-50: #f3fce4;
+  --color-lime-100: #e2f8bd;
+  --color-lime-200: #c9ee87;
+  --color-lime-300: #a8dc4d;
+  --color-lime-400: #8ecb2c;
+  --color-lime-500: #72ac1c;
+  --color-lime-600: #588815;
+  --color-lime-700: #446912;
+
+  --color-danger-100: #fbe3df;
+  --color-danger-500: #d1552f;
+  --color-danger-600: #b3431f;
 }
 
 @theme inline {
@@ -10,17 +43,46 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-khaki-50: var(--color-khaki-50);
+  --color-khaki-100: var(--color-khaki-100);
+  --color-khaki-200: var(--color-khaki-200);
+  --color-khaki-300: var(--color-khaki-300);
+  --color-khaki-400: var(--color-khaki-400);
+  --color-khaki-500: var(--color-khaki-500);
+  --color-khaki-600: var(--color-khaki-600);
+  --color-khaki-700: var(--color-khaki-700);
+
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+
+  --color-lime-50: var(--color-lime-50);
+  --color-lime-100: var(--color-lime-100);
+  --color-lime-200: var(--color-lime-200);
+  --color-lime-300: var(--color-lime-300);
+  --color-lime-400: var(--color-lime-400);
+  --color-lime-500: var(--color-lime-500);
+  --color-lime-600: var(--color-lime-600);
+  --color-lime-700: var(--color-lime-700);
+
+  --color-danger-100: var(--color-danger-100);
+  --color-danger-500: var(--color-danger-500);
+  --color-danger-600: var(--color-danger-600);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--color-brand-200);
 }

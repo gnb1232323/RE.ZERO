@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!docker/.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# docker
+docker/backups/
+
+# Prisma agent-skill helper docs (symlinks to absolute local paths — not portable)
+/.claude/
+/.agents/
+/.windsurf/
+skills-lock.json
