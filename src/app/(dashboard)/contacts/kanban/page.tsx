@@ -13,7 +13,8 @@ export default async function KanbanPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold text-ink-900">Канбан</h1>
-        <p className="mt-0.5 text-sm text-ink-500">Перетащите карточку между колонками, чтобы сменить стадию</p>
+        <p className="mt-0.5 text-sm text-ink-500 md:hidden">Выберите стадию вкладкой сверху</p>
+        <p className="mt-0.5 hidden text-sm text-ink-500 md:block">Перетащите карточку между колонками, чтобы сменить стадию</p>
       </div>
       <KanbanBoard contacts={contacts} />
     </div>
