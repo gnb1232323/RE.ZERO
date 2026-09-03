@@ -30,7 +30,10 @@ export default async function ContactDetailPage({
       include: { assignedTo: { select: { name: true } } },
       orderBy: [{ status: "asc" }, { dueAt: "asc" }],
     }),
-    prisma.student.findUnique({ where: { contactId: id } }),
+    prisma.student.findUnique({
+      where: { contactId: id },
+      include: { receipts: { orderBy: { createdAt: "desc" } } },
+    }),
   ]);
 
   if (!contact || contact.deletedAt) {
@@ -38,7 +41,14 @@ export default async function ContactDetailPage({
   }
 
   const serializedStudent: SerializedStudent | null = student
-    ? { ...student, paymentAmount: student.paymentAmount.toString() }
+    ? {
+        ...student,
+        paymentAmount: student.paymentAmount.toString(),
+        receipts: student.receipts.map((receipt) => ({
+          ...receipt,
+          paymentAmount: receipt.paymentAmount.toString(),
+        })),
+      }
     : null;
 
   return (

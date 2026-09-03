@@ -68,6 +68,7 @@ model User {
   activities      Activity[]
   tasksAssigned   Task[]     @relation("TaskAssignee")
   tasksCreated    Task[]     @relation("TaskCreator")
+  receipts        Receipt[]
 }
 
 model Contact {
@@ -146,6 +147,25 @@ model Student {
   paymentAmount  Decimal       @db.Decimal(10, 2)
   paymentStatus  PaymentStatus @default(UNPAID)
   paymentNotes   String?
+  driveFolderId  String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  receipts Receipt[]
+}
+
+model Receipt {
+  id            String        @id @default(cuid())
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fileName      String
+  driveFileId   String
+  driveViewLink String
+  paymentAmount Decimal       @db.Decimal(10, 2)
+  paymentStatus PaymentStatus
+  uploadedById  String
+  uploadedBy    User          @relation(fields: [uploadedById], references: [id])
+  createdAt     DateTime      @default(now())
+
+  @@index([studentId])
 }

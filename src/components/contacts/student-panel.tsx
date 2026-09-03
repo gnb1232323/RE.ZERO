@@ -5,9 +5,13 @@ import { useState } from "react";
 import { upsertStudent } from "@/lib/actions/students";
 import { paymentStatusLabels } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
-import type { PaymentStatus, Student } from "@/generated/prisma/client";
+import type { PaymentStatus, Receipt, Student } from "@/generated/prisma/client";
 
-export type SerializedStudent = Omit<Student, "paymentAmount"> & { paymentAmount: string };
+export type SerializedReceipt = Omit<Receipt, "paymentAmount"> & { paymentAmount: string };
+export type SerializedStudent = Omit<Student, "paymentAmount"> & {
+  paymentAmount: string;
+  receipts?: SerializedReceipt[];
+};
 
 const paymentStatusColors: Record<PaymentStatus, string> = {
   UNPAID: "bg-danger-100 text-danger-600",
@@ -42,6 +46,30 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
             {paymentStatusLabels[student.paymentStatus]}
           </span>
         </p>
+
+        {student.receipts && student.receipts.length > 0 && (
+          <div className="mt-2 space-y-1 border-t border-ink-100 pt-2">
+            <p className="text-xs font-medium text-ink-500">Чеки</p>
+            {student.receipts.map((receipt) => (
+              <a
+                key={receipt.id}
+                href={receipt.driveViewLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-2 rounded-md px-1.5 py-1 text-xs text-ink-600 transition hover:bg-ink-50 hover:text-brand-700"
+              >
+                <span className="truncate">
+                  {formatMoney(receipt.paymentAmount)} · {paymentStatusLabels[receipt.paymentStatus]}
+                </span>
+                <span className="flex-shrink-0 text-ink-400">
+                  {new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
+                    new Date(receipt.createdAt)
+                  )}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -126,6 +154,19 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-ink-500">Чек оплаты (фото или PDF)</label>
+        <input
+          name="receipt"
+          type="file"
+          accept="image/*,.pdf"
+          className="w-full rounded-md border border-ink-300 bg-white px-2 py-1.5 text-sm file:mr-2 file:rounded file:border-0 file:bg-ink-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-ink-700"
+        />
+        <p className="mt-1 text-xs text-ink-400">
+          Если это новая оплата (изменился статус или сумма) — прикрепите чек, он сохранится на Google Диске.
+        </p>
       </div>
 
       {state?.message && <p className="text-sm text-danger-600">{state.message}</p>}
