@@ -10,7 +10,7 @@ export type SerializedStudent = Omit<Student, "paymentAmount"> & { paymentAmount
 
 const paymentStatusColors: Record<PaymentStatus, string> = {
   UNPAID: "bg-danger-100 text-danger-600",
-  PARTIAL: "bg-khaki-200 text-khaki-700",
+  PARTIAL: "bg-ink-200 text-ink-700",
   PAID: "bg-lime-100 text-lime-700",
 };
 
@@ -25,10 +25,9 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
 
   if (!showForm && student) {
     return (
-      <div className="space-y-2 rounded-lg border border-khaki-200 bg-white p-4 text-sm">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium text-brand-800">Студент</h3>
-          <button type="button" onClick={() => setShowForm(true)} className="text-xs text-khaki-500 hover:underline">
+      <div className="space-y-1.5 text-sm">
+        <div className="flex items-center justify-end">
+          <button type="button" onClick={() => setShowForm(true)} className="text-xs text-ink-500 hover:underline">
             Редактировать
           </button>
         </div>
@@ -47,78 +46,77 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
   }
 
   return (
-    <form action={action} className="space-y-3 rounded-lg border border-khaki-200 bg-white p-4">
-      <h3 className="text-sm font-medium text-brand-800">Данные студента</h3>
+    <form action={action} className="space-y-3">
       <input type="hidden" name="contactId" value={contactId} />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Начало курса</label>
+          <label className="mb-1 block text-xs text-ink-500">Начало курса</label>
           <input
             type="date"
             name="courseStartDate"
             required
             defaultValue={toDateInputValue(student?.courseStartDate)}
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Целевой уровень</label>
+          <label className="mb-1 block text-xs text-ink-500">Целевой уровень</label>
           <input
             name="targetLevel"
             defaultValue={student?.targetLevel ?? ""}
             placeholder="Например, B2"
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Целевая дата</label>
+          <label className="mb-1 block text-xs text-ink-500">Целевая дата</label>
           <input
             type="date"
             name="targetDate"
             defaultValue={toDateInputValue(student?.targetDate)}
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Текущий уровень</label>
+          <label className="mb-1 block text-xs text-ink-500">Текущий уровень</label>
           <input
             name="currentLevel"
             defaultValue={student?.currentLevel ?? ""}
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-xs text-khaki-500">Заметки о прогрессе</label>
+        <label className="mb-1 block text-xs text-ink-500">Заметки о прогрессе</label>
         <textarea
           name="progressNotes"
           rows={2}
           defaultValue={student?.progressNotes ?? ""}
           placeholder="Что уже получается, что видит ученик как свой прогресс"
-          className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+          className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Сумма оплаты</label>
+          <label className="mb-1 block text-xs text-ink-500">Сумма оплаты</label>
           <input
             name="paymentAmount"
             type="number"
             step="0.01"
             required
             defaultValue={student?.paymentAmount ?? ""}
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-khaki-500">Статус оплаты</label>
+          <label className="mb-1 block text-xs text-ink-500">Статус оплаты</label>
           <select
             name="paymentStatus"
             defaultValue={student?.paymentStatus ?? "UNPAID"}
-            className="w-full rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-ink-300 px-2 py-1.5 text-sm"
           >
             {Object.entries(paymentStatusLabels).map(([value, label]) => (
               <option key={value} value={value}>
@@ -140,7 +138,7 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
           {pending ? "Сохранение..." : "Сохранить"}
         </button>
         {student && (
-          <button type="button" onClick={() => setShowForm(false)} className="text-sm text-khaki-500 hover:underline">
+          <button type="button" onClick={() => setShowForm(false)} className="text-sm text-ink-500 hover:underline">
             Отмена
           </button>
         )}

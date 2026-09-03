@@ -2,29 +2,28 @@
 
 import { useActionState } from "react";
 import { createTask } from "@/lib/actions/tasks";
+import { PlusIcon } from "@/components/icons";
+
+const inputClasses =
+  "rounded-md border border-ink-300 px-2 py-1.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
 
 export function TaskForm({ contactId, users }: { contactId: string; users: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState(createTask, undefined);
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
+    <form action={action} className="flex flex-wrap items-end gap-2 border-b border-ink-100 pb-4">
       <input type="hidden" name="contactId" value={contactId} />
       <div>
-        <label className="mb-1 block text-xs text-khaki-500">Задача</label>
-        <input
-          name="title"
-          required
-          className="rounded-md border border-khaki-300 px-2 py-1.5 text-sm"
-          placeholder="Например, позвонить"
-        />
+        <label className="mb-1 block text-xs text-ink-500">Задача</label>
+        <input name="title" required className={inputClasses} placeholder="Например, позвонить" />
       </div>
       <div>
-        <label className="mb-1 block text-xs text-khaki-500">Срок</label>
-        <input name="dueAt" type="date" required className="rounded-md border border-khaki-300 px-2 py-1.5 text-sm" />
+        <label className="mb-1 block text-xs text-ink-500">Срок</label>
+        <input name="dueAt" type="date" required className={inputClasses} />
       </div>
       <div>
-        <label className="mb-1 block text-xs text-khaki-500">Ответственный</label>
-        <select name="assignedToId" required defaultValue="" className="rounded-md border border-khaki-300 px-2 py-1.5 text-sm">
+        <label className="mb-1 block text-xs text-ink-500">Ответственный</label>
+        <select name="assignedToId" required defaultValue="" className={inputClasses}>
           <option value="" disabled>
             Выбрать
           </option>
@@ -38,8 +37,9 @@ export function TaskForm({ contactId, users }: { contactId: string; users: { id:
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 disabled:opacity-50"
+        className="flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 disabled:opacity-50"
       >
+        <PlusIcon className="h-3.5 w-3.5" />
         {pending ? "..." : "Добавить"}
       </button>
       {state?.message && <p className="w-full text-sm text-danger-600">{state.message}</p>}

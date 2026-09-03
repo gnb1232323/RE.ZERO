@@ -1,41 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf8f2;
-  --foreground: #2b2a24;
+  --background: #f6f5f3;
+  --foreground: #1c1b22;
 
-  /* Brand palette: khaki (warm neutral), purple (primary), bright green (success/accent) */
-  --color-khaki-50: #faf8f2;
-  --color-khaki-100: #f3efe0;
-  --color-khaki-200: #e6ddbf;
-  --color-khaki-300: #d3c495;
-  --color-khaki-400: #bfa96e;
-  --color-khaki-500: #a68f52;
-  --color-khaki-600: #86723f;
-  --color-khaki-700: #665834;
+  /* Neutral UI scale (text, borders, chrome) — clean slate/gray, not tinted,
+     so it stays readable and doesn't compete with the brand accents below. */
+  --color-ink-50: #f6f5f3;
+  --color-ink-100: #ede9e4;
+  --color-ink-200: #ddd7d0;
+  --color-ink-300: #bfb6ac;
+  --color-ink-400: #948a80;
+  --color-ink-500: #6f6659;
+  --color-ink-600: #524a40;
+  --color-ink-700: #3a342c;
+  --color-ink-800: #262219;
+  --color-ink-900: #17140f;
 
-  --color-brand-50: #f4f0fe;
-  --color-brand-100: #e6dcfd;
-  --color-brand-200: #cdb8fb;
-  --color-brand-300: #ab8bf5;
-  --color-brand-400: #8c62ec;
-  --color-brand-500: #7440dd;
-  --color-brand-600: #6229c4;
-  --color-brand-700: #4f1fa0;
-  --color-brand-800: #401a7f;
+  /* Khaki — warm accent, used sparingly (early-funnel stage, subtle tints),
+     not as the general-purpose neutral. */
+  --color-khaki-100: #f1ecd8;
+  --color-khaki-200: #e3d9b3;
+  --color-khaki-300: #cdbb80;
+  --color-khaki-400: #b39c5c;
+  --color-khaki-500: #93803f;
+  --color-khaki-600: #726231;
 
-  --color-lime-50: #f3fce4;
-  --color-lime-100: #e2f8bd;
-  --color-lime-200: #c9ee87;
-  --color-lime-300: #a8dc4d;
-  --color-lime-400: #8ecb2c;
-  --color-lime-500: #72ac1c;
-  --color-lime-600: #588815;
-  --color-lime-700: #446912;
+  /* Brand purple — primary actions, links, active states. */
+  --color-brand-50: #f5f1fe;
+  --color-brand-100: #e9defd;
+  --color-brand-200: #d2bafb;
+  --color-brand-300: #b28df5;
+  --color-brand-400: #9563ec;
+  --color-brand-500: #7c42dc;
+  --color-brand-600: #672cc4;
+  --color-brand-700: #53229f;
+  --color-brand-800: #421c7e;
+  --color-brand-900: #331761;
+
+  /* Bright lime — success / positive-money accent. */
+  --color-lime-100: #e6f9c8;
+  --color-lime-200: #cef190;
+  --color-lime-300: #aee056;
+  --color-lime-400: #8ec72e;
+  --color-lime-500: #71a51c;
+  --color-lime-600: #578015;
+  --color-lime-700: #446612;
 
   --color-danger-100: #fbe3df;
   --color-danger-500: #d1552f;
   --color-danger-600: #b3431f;
+
+  --shadow-card: 0 1px 2px rgba(23, 20, 15, 0.04), 0 1px 8px rgba(23, 20, 15, 0.04);
+  --shadow-pop: 0 4px 12px rgba(23, 20, 15, 0.08), 0 2px 4px rgba(23, 20, 15, 0.06);
 }
 
 @theme inline {
@@ -44,14 +61,23 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-khaki-50: var(--color-khaki-50);
+  --color-ink-50: var(--color-ink-50);
+  --color-ink-100: var(--color-ink-100);
+  --color-ink-200: var(--color-ink-200);
+  --color-ink-300: var(--color-ink-300);
+  --color-ink-400: var(--color-ink-400);
+  --color-ink-500: var(--color-ink-500);
+  --color-ink-600: var(--color-ink-600);
+  --color-ink-700: var(--color-ink-700);
+  --color-ink-800: var(--color-ink-800);
+  --color-ink-900: var(--color-ink-900);
+
   --color-khaki-100: var(--color-khaki-100);
   --color-khaki-200: var(--color-khaki-200);
   --color-khaki-300: var(--color-khaki-300);
   --color-khaki-400: var(--color-khaki-400);
   --color-khaki-500: var(--color-khaki-500);
   --color-khaki-600: var(--color-khaki-600);
-  --color-khaki-700: var(--color-khaki-700);
 
   --color-brand-50: var(--color-brand-50);
   --color-brand-100: var(--color-brand-100);
@@ -62,8 +88,8 @@
   --color-brand-600: var(--color-brand-600);
   --color-brand-700: var(--color-brand-700);
   --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
 
-  --color-lime-50: var(--color-lime-50);
   --color-lime-100: var(--color-lime-100);
   --color-lime-200: var(--color-lime-200);
   --color-lime-300: var(--color-lime-300);
@@ -75,14 +101,22 @@
   --color-danger-100: var(--color-danger-100);
   --color-danger-500: var(--color-danger-500);
   --color-danger-600: var(--color-danger-600);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
   background: var(--color-brand-200);
+}
+
+* {
+  scrollbar-color: var(--color-ink-300) transparent;
 }

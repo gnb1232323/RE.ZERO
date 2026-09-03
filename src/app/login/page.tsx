@@ -14,12 +14,12 @@ export default function LoginPage() {
             <span className="h-2.5 w-2.5 rounded-full bg-lime-500" />
             <h1 className="text-xl font-semibold text-brand-800">RE ZERO CRM</h1>
           </div>
-          <p className="text-sm text-khaki-600">Войдите, чтобы продолжить</p>
+          <p className="text-sm text-ink-600">Войдите, чтобы продолжить</p>
         </div>
 
         <form action={action} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-khaki-700">
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-ink-700">
               Email
             </label>
             <input
@@ -28,7 +28,7 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               required
-              className="w-full rounded-md border border-khaki-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+              className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
             {state?.errors?.email && (
               <p className="mt-1 text-sm text-danger-600">{state.errors.email[0]}</p>
@@ -36,7 +36,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-khaki-700">
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-ink-700">
               Пароль
             </label>
             <input
@@ -45,7 +45,7 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              className="w-full rounded-md border border-khaki-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+              className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
             {state?.errors?.password && (
               <p className="mt-1 text-sm text-danger-600">{state.errors.password[0]}</p>

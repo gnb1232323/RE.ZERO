@@ -15,7 +15,7 @@ export function DeleteContactButton({ contactId }: { contactId: string }) {
           startTransition(() => softDeleteContact(contactId));
         }
       }}
-      className="text-sm text-khaki-400 transition hover:text-danger-600 disabled:opacity-50"
+      className="text-sm text-ink-400 transition hover:text-danger-600 disabled:opacity-50"
     >
       Удалить
     </button>

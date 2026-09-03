@@ -19,13 +19,17 @@ export default async function TasksPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="mb-3 text-lg font-semibold text-brand-800">Открытые задачи</h1>
+        <h1 className="text-xl font-semibold text-ink-900">Задачи</h1>
+        <p className="mt-0.5 text-sm text-ink-500">{openTasks.length} открытых</p>
+      </div>
+      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
+        <h2 className="mb-3 text-sm font-semibold text-ink-800">Открытые задачи</h2>
         <TaskList tasks={openTasks} />
-      </div>
-      <div>
-        <h2 className="mb-3 text-sm font-medium text-khaki-700">Недавно выполненные</h2>
+      </section>
+      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
+        <h2 className="mb-3 text-sm font-semibold text-ink-800">Недавно выполненные</h2>
         <TaskList tasks={doneTasks} />
-      </div>
+      </section>
     </div>
   );
 }

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
 import { getAlmatyDayBounds, formatDateAlmaty } from "@/lib/date";
+import { ContactsIcon, TrendUpIcon, CoinsIcon, ClockIcon, AlertIcon } from "@/components/icons";
 
 export default async function DashboardPage() {
-  const [stageCounts, overdueTasks, todayTasks] = await Promise.all([
+  const [stageCounts, overdueTasks, todayTasks, studentCount] = await Promise.all([
     prisma.contact.groupBy({
       by: ["stage"],
       where: { deletedAt: null },
@@ -12,6 +13,7 @@ export default async function DashboardPage() {
     }),
     getOverdueTasks(),
     getTodayTasks(),
+    prisma.student.count(),
   ]);
 
   const countByStage = Object.fromEntries(
@@ -24,40 +26,77 @@ export default async function DashboardPage() {
     .filter((s) => s !== "LOST")
     .reduce((sum, stage) => sum + (countByStage[stage] ?? 0), 0);
   const conversionRate = totalContacts > 0 ? Math.round((paidOrLater / totalContacts) * 100) : 0;
+  const funnelStages = stageOrder.filter((s) => s !== "LOST");
+  const maxFunnelCount = Math.max(1, ...funnelStages.map((s) => countByStage[s] ?? 0));
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-lg font-semibold text-brand-800">Дашборд</h1>
-        <p className="text-sm text-khaki-500">
-          {totalContacts} контактов в базе · конверсия в оплату {conversionRate}%
-        </p>
+        <h1 className="text-xl font-semibold text-ink-900">Дашборд</h1>
+        <p className="mt-0.5 text-sm text-ink-500">Сводка по воронке и задачам на сегодня</p>
       </div>
 
-      <section>
-        <h2 className="mb-3 text-sm font-medium text-khaki-700">Контакты по стадиям</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {stageOrder.map((stage) => (
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={ContactsIcon} label="Контактов в базе" value={totalContacts} tone="brand" />
+        <StatCard icon={CoinsIcon} label="Студентов" value={studentCount} tone="lime" />
+        <StatCard icon={TrendUpIcon} label="Конверсия в оплату" value={`${conversionRate}%`} tone="khaki" />
+        <StatCard
+          icon={AlertIcon}
+          label="Просрочено задач"
+          value={overdueTasks.length}
+          tone={overdueTasks.length > 0 ? "danger" : "ink"}
+        />
+      </section>
+
+      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
+        <h2 className="mb-4 text-sm font-semibold text-ink-800">Воронка продаж</h2>
+        <div className="space-y-2.5">
+          {funnelStages.map((stage) => {
+            const count = countByStage[stage] ?? 0;
+            const widthPct = Math.max(4, Math.round((count / maxFunnelCount) * 100));
+            return (
+              <Link
+                key={stage}
+                href={`/contacts?stage=${stage}`}
+                className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
+              >
+                <span className="w-40 flex-shrink-0 truncate text-sm text-ink-600 group-hover:text-ink-900">
+                  {stageLabels[stage]}
+                </span>
+                <span className="h-5 flex-1 overflow-hidden rounded bg-ink-100">
+                  <span
+                    className={`block h-full rounded ${stageColors[stage].dot} transition-all`}
+                    style={{ width: `${widthPct}%` }}
+                  />
+                </span>
+                <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{count}</span>
+              </Link>
+            );
+          })}
+          {(countByStage.LOST ?? 0) > 0 && (
             <Link
-              key={stage}
-              href={`/contacts?stage=${stage}`}
-              className={`rounded-lg border-l-4 border border-khaki-200 bg-white p-4 transition hover:shadow-sm ${stageColors[stage].border}`}
+              href="/contacts?stage=LOST"
+              className="group flex items-center gap-3 rounded-md py-1 pt-2 border-t border-ink-100 transition hover:bg-ink-50"
             >
-              <div className="text-2xl font-semibold text-brand-800">
-                {countByStage[stage] ?? 0}
-              </div>
-              <div className={`flex items-center gap-1.5 text-xs ${stageColors[stage].text}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${stageColors[stage].dot}`} />
-                {stageLabels[stage]}
-              </div>
+              <span className="w-40 flex-shrink-0 truncate text-sm text-danger-600">{stageLabels.LOST}</span>
+              <span className="flex-1" />
+              <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-danger-600">
+                {countByStage.LOST}
+              </span>
             </Link>
-          ))}
+          )}
         </div>
       </section>
 
-      <section className="grid gap-6 sm:grid-cols-2">
-        <TaskWidget title="Просроченные задачи" tasks={overdueTasks} emptyText="Нет просроченных задач" />
-        <TaskWidget title="Задачи на сегодня" tasks={todayTasks} emptyText="На сегодня задач нет" />
+      <section className="grid gap-4 lg:grid-cols-2">
+        <TaskWidget
+          title="Просроченные задачи"
+          icon={AlertIcon}
+          tone="danger"
+          tasks={overdueTasks}
+          emptyText="Нет просроченных задач"
+        />
+        <TaskWidget title="Задачи на сегодня" icon={ClockIcon} tone="brand" tasks={todayTasks} emptyText="На сегодня задач нет" />
       </section>
     </div>
   );
@@ -84,29 +123,71 @@ async function getTodayTasks() {
 }
 
 type TaskRow = Awaited<ReturnType<typeof getOverdueTasks>>[number];
+type Tone = "brand" | "lime" | "khaki" | "danger" | "ink";
+
+const toneClasses: Record<Tone, { bg: string; text: string }> = {
+  brand: { bg: "bg-brand-100", text: "text-brand-700" },
+  lime: { bg: "bg-lime-100", text: "text-lime-700" },
+  khaki: { bg: "bg-khaki-100", text: "text-khaki-600" },
+  danger: { bg: "bg-danger-100", text: "text-danger-600" },
+  ink: { bg: "bg-ink-100", text: "text-ink-500" },
+};
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: (props: { className?: string }) => React.ReactElement;
+  label: string;
+  value: string | number;
+  tone: Tone;
+}) {
+  const colors = toneClasses[tone];
+  return (
+    <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">
+      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${colors.bg} ${colors.text}`}>
+        <Icon className="h-[18px] w-[18px]" />
+      </div>
+      <div className="text-2xl font-semibold text-ink-900">{value}</div>
+      <div className="text-xs text-ink-500">{label}</div>
+    </div>
+  );
+}
 
 function TaskWidget({
   title,
+  icon: Icon,
+  tone,
   tasks,
   emptyText,
 }: {
   title: string;
+  icon: (props: { className?: string }) => React.ReactElement;
+  tone: Tone;
   tasks: TaskRow[];
   emptyText: string;
 }) {
+  const colors = toneClasses[tone];
   return (
-    <div className="rounded-lg border border-khaki-200 bg-white p-4">
-      <h2 className="mb-3 text-sm font-medium text-khaki-700">{title}</h2>
+    <div className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-800">
+        <span className={`flex h-6 w-6 items-center justify-center rounded-md ${colors.bg} ${colors.text}`}>
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        {title}
+      </h2>
       {tasks.length === 0 ? (
-        <p className="text-sm text-khaki-400">{emptyText}</p>
+        <p className="text-sm text-ink-400">{emptyText}</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {tasks.map((task) => (
-            <li key={task.id} className="text-sm">
-              <Link href={`/contacts/${task.contact.id}`} className="text-brand-800 hover:underline">
+            <li key={task.id} className="rounded-md px-2 py-1.5 text-sm transition hover:bg-ink-50">
+              <Link href={`/contacts/${task.contact.id}`} className="font-medium text-ink-800 hover:text-brand-700">
                 {task.title}
               </Link>
-              <span className="ml-2 text-khaki-400">
+              <span className="ml-2 text-ink-400">
                 {task.contact.fullName} · {formatDateAlmaty(task.dueAt)}
               </span>
             </li>

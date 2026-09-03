@@ -1,13 +1,15 @@
 import { getCurrentUser } from "@/lib/dal";
-import { Nav } from "@/components/layout/nav";
+import { Sidebar } from "@/components/layout/sidebar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Nav userName={user?.name ?? ""} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <Sidebar userName={user?.name ?? ""} />
+      <main className="min-w-0 flex-1 px-4 py-6 md:ml-60 md:px-8 md:py-8">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }

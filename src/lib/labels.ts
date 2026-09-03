@@ -22,20 +22,22 @@ export const stageOrder: PipelineStage[] = [
   "LOST",
 ];
 
-/** Color-codes the pipeline: khaki for early/unqualified, purple while in progress,
- * green once money/results land, red for lost. Used on kanban headers, table badges,
- * and dashboard tiles so stage is recognizable at a glance, not just by label text. */
+/** Color-codes the pipeline as it progresses: neutral for a fresh lead, warm khaki
+ * once they're engaged (booked/attended a trial), purple while they're a paying,
+ * active student, bright lime once they've actually succeeded (completed/renewed),
+ * red for lost. Used on kanban headers, table badges, and dashboard tiles so stage
+ * is recognizable at a glance, not just by label text. */
 export const stageColors: Record<
   PipelineStage,
   { bg: string; text: string; ring: string; dot: string; border: string }
 > = {
-  LEAD: { bg: "bg-khaki-100", text: "text-khaki-700", ring: "ring-khaki-300", dot: "bg-khaki-400", border: "border-khaki-400" },
-  TRIAL_BOOKED: { bg: "bg-khaki-200", text: "text-khaki-700", ring: "ring-khaki-300", dot: "bg-khaki-500", border: "border-khaki-500" },
-  TRIAL_DONE: { bg: "bg-brand-50", text: "text-brand-700", ring: "ring-brand-200", dot: "bg-brand-300", border: "border-brand-300" },
+  LEAD: { bg: "bg-ink-100", text: "text-ink-600", ring: "ring-ink-300", dot: "bg-ink-400", border: "border-ink-300" },
+  TRIAL_BOOKED: { bg: "bg-khaki-100", text: "text-khaki-600", ring: "ring-khaki-300", dot: "bg-khaki-400", border: "border-khaki-400" },
+  TRIAL_DONE: { bg: "bg-khaki-200", text: "text-khaki-600", ring: "ring-khaki-400", dot: "bg-khaki-500", border: "border-khaki-500" },
   PAID_ENROLLED: { bg: "bg-brand-100", text: "text-brand-700", ring: "ring-brand-300", dot: "bg-brand-500", border: "border-brand-500" },
-  STUDYING: { bg: "bg-brand-100", text: "text-brand-800", ring: "ring-brand-300", dot: "bg-brand-600", border: "border-brand-600" },
+  STUDYING: { bg: "bg-brand-100", text: "text-brand-800", ring: "ring-brand-400", dot: "bg-brand-700", border: "border-brand-700" },
   COMPLETED: { bg: "bg-lime-100", text: "text-lime-700", ring: "ring-lime-300", dot: "bg-lime-500", border: "border-lime-500" },
-  RENEWED_REFERRAL: { bg: "bg-lime-100", text: "text-lime-700", ring: "ring-lime-400", dot: "bg-lime-600", border: "border-lime-600" },
+  RENEWED_REFERRAL: { bg: "bg-lime-200", text: "text-lime-700", ring: "ring-lime-400", dot: "bg-lime-600", border: "border-lime-600" },
   LOST: { bg: "bg-danger-100", text: "text-danger-600", ring: "ring-danger-500/30", dot: "bg-danger-500", border: "border-danger-500" },
 };
 

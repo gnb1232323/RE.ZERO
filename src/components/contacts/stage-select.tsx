@@ -20,7 +20,7 @@ export function StageSelect({ contactId, currentStage }: { contactId: string; cu
         defaultValue={currentStage}
         disabled={isPending}
         onChange={() => formRef.current?.requestSubmit()}
-        className="w-full rounded-md border border-khaki-300 bg-white px-2 py-1 text-xs disabled:opacity-50"
+        className="w-full rounded-md border border-ink-300 bg-white px-2 py-1 text-xs disabled:opacity-50"
       >
         {stageOrder.map((stage) => (
           <option key={stage} value={stage}>
