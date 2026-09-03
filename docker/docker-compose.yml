@@ -15,6 +15,7 @@ services:
       retries: 10
 
   app:
+    image: ${APP_IMAGE:-re-zero-crm-app:local}
     build:
       context: ..
       dockerfile: docker/Dockerfile
