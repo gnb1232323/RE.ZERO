@@ -1,26 +1,36 @@
 "use client";
 
-import { useRef, useTransition } from "react";
-import { changeStage } from "@/lib/actions/contacts";
+import { useRef, useState, useTransition } from "react";
+import { applyStageChange } from "@/lib/change-stage-client";
 import { stageLabels, stageOrder } from "@/lib/labels";
+import { LostReasonModal } from "@/components/contacts/lost-reason-modal";
 import type { PipelineStage } from "@/generated/prisma/enums";
 
 export function StageSelect({ contactId, currentStage }: { contactId: string; currentStage: PipelineStage }) {
-  const formRef = useRef<HTMLFormElement>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmingLost, setConfirmingLost] = useState(false);
+
+  function apply(stage: PipelineStage, reason?: string) {
+    startTransition(() => applyStageChange(contactId, stage, reason));
+  }
 
   return (
-    <form
-      ref={formRef}
-      action={(formData) => startTransition(() => changeStage(formData))}
-    >
-      <input type="hidden" name="contactId" value={contactId} />
+    <>
       <select
+        ref={selectRef}
         name="stage"
         defaultValue={currentStage}
         disabled={isPending}
-        onChange={() => formRef.current?.requestSubmit()}
-        className="w-full rounded-md border border-ink-300 bg-white px-2 py-1 text-xs disabled:opacity-50"
+        onChange={(e) => {
+          const stage = e.target.value as PipelineStage;
+          if (stage === "LOST") {
+            setConfirmingLost(true);
+            return;
+          }
+          apply(stage);
+        }}
+        className="w-full rounded-md border border-ink-300 bg-white px-2 py-1 text-xs transition disabled:opacity-50"
       >
         {stageOrder.map((stage) => (
           <option key={stage} value={stage}>
@@ -28,6 +38,19 @@ export function StageSelect({ contactId, currentStage }: { contactId: string; cu
           </option>
         ))}
       </select>
-    </form>
+
+      {confirmingLost && (
+        <LostReasonModal
+          onCancel={() => {
+            setConfirmingLost(false);
+            if (selectRef.current) selectRef.current.value = currentStage;
+          }}
+          onConfirm={(reason) => {
+            setConfirmingLost(false);
+            apply("LOST", reason);
+          }}
+        />
+      )}
+    </>
   );
 }

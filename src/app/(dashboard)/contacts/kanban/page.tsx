@@ -2,12 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { KanbanBoard } from "@/components/contacts/kanban-board";
 
 export default async function KanbanPage() {
-  const contacts = await prisma.contact.findMany({
+  const rows = await prisma.contact.findMany({
     where: { deletedAt: null },
     orderBy: { createdAt: "desc" },
     take: 300,
-    select: { id: true, fullName: true, phone: true, stage: true },
+    select: { id: true, fullName: true, phone: true, stage: true, student: { select: { paymentAmount: true } } },
   });
+
+  const contacts = rows.map((c) => ({
+    ...c,
+    paymentAmount: c.student ? Number(c.student.paymentAmount) : null,
+  }));
 
   return (
     <div className="space-y-4">

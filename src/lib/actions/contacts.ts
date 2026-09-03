@@ -32,6 +32,16 @@ export async function createContact(_state: ContactFormState, formData: FormData
 
   const data = validated.data;
 
+  if (formData.get("confirmDuplicate") !== "true") {
+    const existing = await prisma.contact.findFirst({
+      where: { phone: data.phone, deletedAt: null },
+      select: { id: true, fullName: true, phone: true },
+    });
+    if (existing) {
+      return { duplicate: existing };
+    }
+  }
+
   const contact = await prisma.contact.create({
     data: {
       fullName: data.fullName,
@@ -123,6 +133,12 @@ export async function changeStage(formData: FormData) {
   const fromStage = contact.stage;
   if (fromStage === stage) return;
 
+  const reason = String(formData.get("reason") ?? "").trim();
+  const body =
+    stage === "LOST" && reason
+      ? `Стадия изменена: ${fromStage} → ${stage}. Причина: ${reason}`
+      : `Стадия изменена: ${fromStage} → ${stage}`;
+
   await prisma.$transaction([
     prisma.contact.update({
       where: { id: contactId },
@@ -133,8 +149,8 @@ export async function changeStage(formData: FormData) {
         contactId,
         authorId: session.userId,
         type: "STAGE_CHANGE",
-        body: `Стадия изменена: ${fromStage} → ${stage}`,
-        metadata: { from: fromStage, to: stage },
+        body,
+        metadata: { from: fromStage, to: stage, reason: reason || undefined },
       },
     }),
   ]);

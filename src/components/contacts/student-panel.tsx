@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useState } from "react";
 import { upsertStudent } from "@/lib/actions/students";
 import { paymentStatusLabels } from "@/lib/labels";
+import { formatMoney } from "@/lib/money";
 import type { PaymentStatus, Student } from "@/generated/prisma/client";
 
 export type SerializedStudent = Omit<Student, "paymentAmount"> & { paymentAmount: string };
@@ -36,7 +37,7 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
         {student.currentLevel && <p>Текущий уровень: {student.currentLevel}</p>}
         {student.progressNotes && <p>Прогресс: {student.progressNotes}</p>}
         <p className="flex items-center gap-2">
-          Оплата: {student.paymentAmount} ₸
+          Оплата: {formatMoney(student.paymentAmount)}
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${paymentStatusColors[student.paymentStatus]}`}>
             {paymentStatusLabels[student.paymentStatus]}
           </span>

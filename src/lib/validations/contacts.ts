@@ -22,6 +22,7 @@ export type ContactFormState =
   | {
       errors?: Record<string, string[]>;
       message?: string;
+      duplicate?: { id: string; fullName: string; phone: string } | null;
     }
   | undefined;
 

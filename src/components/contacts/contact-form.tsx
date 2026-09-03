@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
+import Link from "next/link";
 import { createContact, updateContact } from "@/lib/actions/contacts";
 import { sourceLabels, formatLabels } from "@/lib/labels";
+import { AlertIcon } from "@/components/icons";
 import type { Contact } from "@/generated/prisma/client";
 
 const inputClasses =
@@ -18,10 +20,38 @@ export function ContactForm({
 }) {
   const action = contact ? updateContact : createContact;
   const [state, formAction, pending] = useActionState(action, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+  const confirmDuplicateRef = useRef<HTMLInputElement>(null);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       {contact && <input type="hidden" name="contactId" value={contact.id} />}
+      <input ref={confirmDuplicateRef} type="hidden" name="confirmDuplicate" value="" />
+
+      {state?.duplicate && (
+        <div className="animate-fade-in flex items-start gap-2.5 rounded-lg border border-khaki-400 bg-khaki-100 p-3 text-sm">
+          <AlertIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-khaki-600" />
+          <div>
+            <p className="text-khaki-600">
+              Контакт с таким телефоном уже есть:{" "}
+              <Link href={`/contacts/${state.duplicate.id}`} className="font-medium underline hover:no-underline">
+                {state.duplicate.fullName}
+              </Link>{" "}
+              ({state.duplicate.phone})
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirmDuplicateRef.current) confirmDuplicateRef.current.value = "true";
+                formRef.current?.requestSubmit();
+              }}
+              className="mt-1.5 text-xs font-medium text-khaki-600 underline hover:no-underline"
+            >
+              Всё равно создать новый контакт
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Имя" name="fullName" required defaultValue={contact?.fullName} errors={state?.errors?.fullName} />

@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
 import { getAlmatyDayBounds, formatDateAlmaty } from "@/lib/date";
 import { ContactsIcon, TrendUpIcon, CoinsIcon, ClockIcon, AlertIcon } from "@/components/icons";
+import { formatMoney } from "@/lib/money";
 
 export default async function DashboardPage() {
-  const [stageCounts, overdueTasks, todayTasks, studentCount] = await Promise.all([
+  const [stageCounts, overdueTasks, todayTasks, studentCount, students] = await Promise.all([
     prisma.contact.groupBy({
       by: ["stage"],
       where: { deletedAt: null },
@@ -14,11 +15,22 @@ export default async function DashboardPage() {
     getOverdueTasks(),
     getTodayTasks(),
     prisma.student.count(),
+    prisma.student.findMany({
+      where: { contact: { deletedAt: null } },
+      select: { paymentAmount: true, contact: { select: { stage: true } } },
+    }),
   ]);
 
   const countByStage = Object.fromEntries(
     stageCounts.map((row) => [row.stage, row._count])
   ) as Record<string, number>;
+
+  const valueByStage: Record<string, number> = {};
+  for (const s of students) {
+    const stage = s.contact.stage;
+    valueByStage[stage] = (valueByStage[stage] ?? 0) + Number(s.paymentAmount);
+  }
+  const totalValue = students.reduce((sum, s) => sum + Number(s.paymentAmount), 0);
 
   const totalContacts = stageCounts.reduce((sum, row) => sum + row._count, 0);
   const paidOrLater = stageOrder
@@ -38,7 +50,14 @@ export default async function DashboardPage() {
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={ContactsIcon} label="Контактов в базе" value={totalContacts} tone="brand" href="/contacts" />
-        <StatCard icon={CoinsIcon} label="Студентов" value={studentCount} tone="lime" href="/contacts?hasStudent=true" />
+        <StatCard
+          icon={CoinsIcon}
+          label="Студентов"
+          value={studentCount}
+          sublabel={totalValue > 0 ? formatMoney(totalValue) : undefined}
+          tone="lime"
+          href="/contacts?hasStudent=true"
+        />
         <StatCard icon={TrendUpIcon} label="Конверсия в оплату" value={`${conversionRate}%`} tone="khaki" href="/contacts?hasStudent=true" />
         <StatCard
           icon={AlertIcon}
@@ -70,6 +89,13 @@ export default async function DashboardPage() {
                     style={{ width: `${widthPct}%` }}
                   />
                 </span>
+                {valueByStage[stage] ? (
+                  <span className="hidden w-28 flex-shrink-0 truncate text-right text-xs text-ink-400 sm:block">
+                    {formatMoney(valueByStage[stage])}
+                  </span>
+                ) : (
+                  <span className="hidden w-28 flex-shrink-0 sm:block" />
+                )}
                 <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{count}</span>
               </Link>
             );
@@ -146,12 +172,14 @@ function StatCard({
   icon: Icon,
   label,
   value,
+  sublabel,
   tone,
   href,
 }: {
   icon: (props: { className?: string }) => React.ReactElement;
   label: string;
   value: string | number;
+  sublabel?: string;
   tone: Tone;
   href?: string;
 }) {
@@ -161,7 +189,10 @@ function StatCard({
       <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${colors.bg} ${colors.text}`}>
         <Icon className="h-[18px] w-[18px]" />
       </div>
-      <div className="text-2xl font-semibold text-ink-900">{value}</div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-semibold text-ink-900">{value}</span>
+        {sublabel && <span className="text-xs text-ink-400">{sublabel}</span>}
+      </div>
       <div className="text-xs text-ink-500">{label}</div>
     </>
   );

@@ -2,9 +2,11 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { changeStage } from "@/lib/actions/contacts";
+import { applyStageChange } from "@/lib/change-stage-client";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
+import { formatMoney } from "@/lib/money";
 import { StageSelect } from "@/components/contacts/stage-select";
+import { LostReasonModal } from "@/components/contacts/lost-reason-modal";
 import type { PipelineStage } from "@/generated/prisma/enums";
 
 type KanbanContact = {
@@ -12,12 +14,19 @@ type KanbanContact = {
   fullName: string;
   phone: string;
   stage: PipelineStage;
+  paymentAmount: number | null;
 };
+
+function stageValue(contacts: KanbanContact[] | undefined) {
+  const total = (contacts ?? []).reduce((sum, c) => sum + (c.paymentAmount ?? 0), 0);
+  return total > 0 ? formatMoney(total) : null;
+}
 
 export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
   const [overrides, setOverrides] = useState<Record<string, PipelineStage>>({});
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null);
   const [selectedStage, setSelectedStage] = useState<PipelineStage>("LEAD");
+  const [confirmingLostId, setConfirmingLostId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const byStage = useMemo(() => {
@@ -33,13 +42,12 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
   }, [contacts, overrides]);
 
   function moveTo(contactId: string, stage: PipelineStage) {
+    if (stage === "LOST") {
+      setConfirmingLostId(contactId);
+      return;
+    }
     setOverrides((o) => ({ ...o, [contactId]: stage }));
-    startTransition(async () => {
-      const fd = new FormData();
-      fd.append("contactId", contactId);
-      fd.append("stage", stage);
-      await changeStage(fd);
-    });
+    startTransition(() => applyStageChange(contactId, stage));
   }
 
   return (
@@ -69,6 +77,9 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
             );
           })}
         </div>
+        {stageValue(byStage[selectedStage]) && (
+          <p className="mb-2 text-xs text-ink-400">Сумма: {stageValue(byStage[selectedStage])}</p>
+        )}
         <div key={selectedStage} className="animate-fade-in space-y-2">
           {byStage[selectedStage]?.length === 0 && (
             <div className="rounded-lg border border-dashed border-ink-200 py-8 text-center text-sm text-ink-400">
@@ -107,6 +118,9 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
                 </h2>
                 <span className={`text-xs font-medium ${stageColors[stage].text}`}>{byStage[stage]?.length ?? 0}</span>
               </div>
+              {stageValue(byStage[stage]) && (
+                <p className={`mt-0.5 text-[11px] ${stageColors[stage].text} opacity-80`}>{stageValue(byStage[stage])}</p>
+              )}
             </div>
             <div
               className={`min-h-[60px] space-y-2 rounded-md p-1 transition ${
@@ -128,7 +142,12 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
                   <Link href={`/contacts/${contact.id}`} className="text-sm font-medium text-ink-800 hover:text-brand-700">
                     {contact.fullName}
                   </Link>
-                  <p className="mb-2 text-xs text-ink-500">{contact.phone}</p>
+                  <p className="text-xs text-ink-500">{contact.phone}</p>
+                  {contact.paymentAmount ? (
+                    <p className="mb-2 text-xs font-medium text-lime-700">{formatMoney(contact.paymentAmount)}</p>
+                  ) : (
+                    <div className="mb-2" />
+                  )}
                   <StageSelect contactId={contact.id} currentStage={contact.stage} />
                 </div>
               ))}
@@ -141,6 +160,18 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
           </div>
         ))}
       </div>
+
+      {confirmingLostId && (
+        <LostReasonModal
+          onCancel={() => setConfirmingLostId(null)}
+          onConfirm={(reason) => {
+            const contactId = confirmingLostId;
+            setConfirmingLostId(null);
+            setOverrides((o) => ({ ...o, [contactId]: "LOST" }));
+            startTransition(() => applyStageChange(contactId, "LOST", reason));
+          }}
+        />
+      )}
     </>
   );
 }
@@ -151,7 +182,12 @@ function KanbanCard({ contact, isMoving }: { contact: KanbanContact; isMoving: b
       <Link href={`/contacts/${contact.id}`} className="text-sm font-medium text-ink-800 hover:text-brand-700">
         {contact.fullName}
       </Link>
-      <p className="mb-2 text-xs text-ink-500">{contact.phone}</p>
+      <p className="text-xs text-ink-500">{contact.phone}</p>
+      {contact.paymentAmount ? (
+        <p className="mb-2 text-xs font-medium text-lime-700">{formatMoney(contact.paymentAmount)}</p>
+      ) : (
+        <div className="mb-2" />
+      )}
       <StageSelect contactId={contact.id} currentStage={contact.stage} />
     </div>
   );
