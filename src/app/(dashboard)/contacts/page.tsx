@@ -10,6 +10,7 @@ type SearchParams = {
   source?: string;
   format?: string;
   q?: string;
+  hasStudent?: string;
 };
 
 const avatarPalette = [
@@ -37,6 +38,7 @@ export default async function ContactsPage({
       stage: params.stage ? (params.stage as PipelineStage) : undefined,
       source: params.source ? (params.source as LeadSource) : undefined,
       format: params.format ? (params.format as LessonFormat) : undefined,
+      student: params.hasStudent === "true" ? { isNot: null } : undefined,
       OR: params.q
         ? [
             { fullName: { contains: params.q, mode: "insensitive" } },

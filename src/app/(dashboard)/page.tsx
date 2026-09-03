@@ -37,14 +37,15 @@ export default async function DashboardPage() {
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={ContactsIcon} label="Контактов в базе" value={totalContacts} tone="brand" />
-        <StatCard icon={CoinsIcon} label="Студентов" value={studentCount} tone="lime" />
-        <StatCard icon={TrendUpIcon} label="Конверсия в оплату" value={`${conversionRate}%`} tone="khaki" />
+        <StatCard icon={ContactsIcon} label="Контактов в базе" value={totalContacts} tone="brand" href="/contacts" />
+        <StatCard icon={CoinsIcon} label="Студентов" value={studentCount} tone="lime" href="/contacts?hasStudent=true" />
+        <StatCard icon={TrendUpIcon} label="Конверсия в оплату" value={`${conversionRate}%`} tone="khaki" href="/contacts?hasStudent=true" />
         <StatCard
           icon={AlertIcon}
           label="Просрочено задач"
           value={overdueTasks.length}
           tone={overdueTasks.length > 0 ? "danger" : "ink"}
+          href="/tasks"
         />
       </section>
 
@@ -95,8 +96,16 @@ export default async function DashboardPage() {
           tone="danger"
           tasks={overdueTasks}
           emptyText="Нет просроченных задач"
+          href="/tasks"
         />
-        <TaskWidget title="Задачи на сегодня" icon={ClockIcon} tone="brand" tasks={todayTasks} emptyText="На сегодня задач нет" />
+        <TaskWidget
+          title="Задачи на сегодня"
+          icon={ClockIcon}
+          tone="brand"
+          tasks={todayTasks}
+          emptyText="На сегодня задач нет"
+          href="/tasks"
+        />
       </section>
     </div>
   );
@@ -138,22 +147,34 @@ function StatCard({
   label,
   value,
   tone,
+  href,
 }: {
   icon: (props: { className?: string }) => React.ReactElement;
   label: string;
   value: string | number;
   tone: Tone;
+  href?: string;
 }) {
   const colors = toneClasses[tone];
-  return (
-    <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">
+  const content = (
+    <>
       <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${colors.bg} ${colors.text}`}>
         <Icon className="h-[18px] w-[18px]" />
       </div>
       <div className="text-2xl font-semibold text-ink-900">{value}</div>
       <div className="text-xs text-ink-500">{label}</div>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block rounded-xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-pop hover:border-ink-300">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">{content}</div>;
 }
 
 function TaskWidget({
@@ -162,22 +183,36 @@ function TaskWidget({
   tone,
   tasks,
   emptyText,
+  href,
 }: {
   title: string;
   icon: (props: { className?: string }) => React.ReactElement;
   tone: Tone;
   tasks: TaskRow[];
   emptyText: string;
+  href?: string;
 }) {
   const colors = toneClasses[tone];
   return (
     <div className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-800">
-        <span className={`flex h-6 w-6 items-center justify-center rounded-md ${colors.bg} ${colors.text}`}>
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        {title}
-      </h2>
+      {href ? (
+        <h2 className="mb-3">
+          <Link href={href} className="group flex items-center gap-2 text-sm font-semibold text-ink-800 hover:text-brand-700">
+            <span className={`flex h-6 w-6 items-center justify-center rounded-md ${colors.bg} ${colors.text}`}>
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+            {title}
+            <span className="ml-auto text-xs font-normal text-ink-400 group-hover:text-brand-600">Все задачи →</span>
+          </Link>
+        </h2>
+      ) : (
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-800">
+          <span className={`flex h-6 w-6 items-center justify-center rounded-md ${colors.bg} ${colors.text}`}>
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          {title}
+        </h2>
+      )}
       {tasks.length === 0 ? (
         <p className="text-sm text-ink-400">{emptyText}</p>
       ) : (
