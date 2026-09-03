@@ -85,10 +85,10 @@ export default async function FinancePage() {
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MoneyStat label="Всего по студентам" value={totalRevenue} tone="brand" />
-        <MoneyStat label={paymentStatusLabels.PAID} value={totalByStatus.PAID.sum} count={totalByStatus.PAID.count} tone="PAID" />
-        <MoneyStat label={paymentStatusLabels.PARTIAL} value={totalByStatus.PARTIAL.sum} count={totalByStatus.PARTIAL.count} tone="PARTIAL" />
-        <MoneyStat label={paymentStatusLabels.UNPAID} value={totalByStatus.UNPAID.sum} count={totalByStatus.UNPAID.count} tone="UNPAID" />
+        <MoneyStat label="Всего по студентам" value={totalRevenue} tone="brand" href="/contacts?hasStudent=true" />
+        <MoneyStat label={paymentStatusLabels.PAID} value={totalByStatus.PAID.sum} count={totalByStatus.PAID.count} tone="PAID" href="/contacts?paymentStatus=PAID" />
+        <MoneyStat label={paymentStatusLabels.PARTIAL} value={totalByStatus.PARTIAL.sum} count={totalByStatus.PARTIAL.count} tone="PARTIAL" href="/contacts?paymentStatus=PARTIAL" />
+        <MoneyStat label={paymentStatusLabels.UNPAID} value={totalByStatus.UNPAID.sum} count={totalByStatus.UNPAID.count} tone="UNPAID" href="/contacts?paymentStatus=UNPAID" />
       </section>
 
       <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
@@ -174,27 +174,40 @@ export default async function FinancePage() {
               )}
               {students.map((s, i) => {
                 const colors = statusToneClasses[s.paymentStatus];
+                const href = `/contacts/${s.contact.id}`;
                 return (
-                  <tr key={i} className="border-b border-ink-100 last:border-0 hover:bg-ink-50">
-                    <td className="px-5 py-2.5">
-                      <Link href={`/contacts/${s.contact.id}`} className="font-medium text-ink-800 hover:text-brand-700">
+                  <tr key={i} className="cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50">
+                    <td className="p-0">
+                      <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800 hover:text-brand-700">
                         {s.contact.fullName}
                       </Link>
                     </td>
-                    <td className="px-5 py-2.5 text-ink-600">
-                      {new Intl.DateTimeFormat("ru-RU", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" }).format(
-                        s.courseStartDate
-                      )}
+                    <td className="p-0">
+                      <Link href={href} className="block px-5 py-2.5 text-ink-600">
+                        {new Intl.DateTimeFormat("ru-RU", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" }).format(
+                          s.courseStartDate
+                        )}
+                      </Link>
                     </td>
-                    <td className="px-5 py-2.5 text-ink-600">{sourceLabels[s.contact.source]}</td>
-                    <td className="px-5 py-2.5 font-medium text-ink-800">{formatMoney(s.paymentAmount.toString())}</td>
-                    <td className="px-5 py-2.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${colors.bg} ${colors.text}`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${colors.dot}`} />
-                        {paymentStatusLabels[s.paymentStatus]}
-                      </span>
+                    <td className="p-0">
+                      <Link href={href} className="block px-5 py-2.5 text-ink-600">
+                        {sourceLabels[s.contact.source]}
+                      </Link>
+                    </td>
+                    <td className="p-0">
+                      <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800">
+                        {formatMoney(s.paymentAmount.toString())}
+                      </Link>
+                    </td>
+                    <td className="p-0">
+                      <Link href={href} className="flex items-center px-5 py-2.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${colors.bg} ${colors.text}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${colors.dot}`} />
+                          {paymentStatusLabels[s.paymentStatus]}
+                        </span>
+                      </Link>
                     </td>
                   </tr>
                 );
@@ -212,18 +225,20 @@ function MoneyStat({
   value,
   count,
   tone,
+  href,
 }: {
   label: string;
   value: number;
   count?: number;
   tone: "brand" | PaymentStatus;
+  href?: string;
 }) {
   const colors =
     tone === "brand"
       ? { bg: "bg-brand-100", text: "text-brand-700" }
       : { bg: statusToneClasses[tone].bg, text: statusToneClasses[tone].text };
-  return (
-    <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">
+  const content = (
+    <>
       <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${colors.bg} ${colors.text}`}>
         <CoinsIcon className="h-[18px] w-[18px]" />
       </div>
@@ -232,6 +247,16 @@ function MoneyStat({
         {label}
         {count !== undefined ? ` · ${count}` : ""}
       </div>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block rounded-xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-pop hover:border-ink-300">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">{content}</div>;
 }

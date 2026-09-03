@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { stageLabels, stageOrder, sourceLabels, formatLabels } from "@/lib/labels";
 import { StageBadge } from "@/components/contacts/stage-badge";
 import { PlusIcon, SearchIcon } from "@/components/icons";
-import type { LeadSource, LessonFormat, PipelineStage } from "@/generated/prisma/enums";
+import type { LeadSource, LessonFormat, PaymentStatus, PipelineStage } from "@/generated/prisma/enums";
 
 type SearchParams = {
   stage?: string;
@@ -11,6 +11,7 @@ type SearchParams = {
   format?: string;
   q?: string;
   hasStudent?: string;
+  paymentStatus?: string;
 };
 
 const avatarPalette = [
@@ -38,7 +39,11 @@ export default async function ContactsPage({
       stage: params.stage ? (params.stage as PipelineStage) : undefined,
       source: params.source ? (params.source as LeadSource) : undefined,
       format: params.format ? (params.format as LessonFormat) : undefined,
-      student: params.hasStudent === "true" ? { isNot: null } : undefined,
+      student: params.paymentStatus
+        ? { paymentStatus: params.paymentStatus as PaymentStatus }
+        : params.hasStudent === "true"
+          ? { isNot: null }
+          : undefined,
       OR: params.q
         ? [
             { fullName: { contains: params.q, mode: "insensitive" } },
