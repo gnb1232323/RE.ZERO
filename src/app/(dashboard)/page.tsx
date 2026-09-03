@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
-import { getAlmatyDayBounds, formatDateAlmaty } from "@/lib/date";
+import { getAlmatyDayBounds, getAlmatyDateKey, formatDateAlmaty } from "@/lib/date";
 import { ContactsIcon, TrendUpIcon, CoinsIcon, ClockIcon, AlertIcon } from "@/components/icons";
 import { formatMoney } from "@/lib/money";
 
+const LEADS_CHART_DAYS = 14;
+
 export default async function DashboardPage() {
-  const [stageCounts, overdueTasks, todayTasks, studentCount, students] = await Promise.all([
+  const [stageCounts, overdueTasks, todayTasks, studentCount, students, recentLeads] = await Promise.all([
     prisma.contact.groupBy({
       by: ["stage"],
       where: { deletedAt: null },
@@ -19,6 +21,7 @@ export default async function DashboardPage() {
       where: { contact: { deletedAt: null } },
       select: { paymentAmount: true, contact: { select: { stage: true } } },
     }),
+    getRecentLeads(),
   ]);
 
   const countByStage = Object.fromEntries(
@@ -40,6 +43,19 @@ export default async function DashboardPage() {
   const conversionRate = totalContacts > 0 ? Math.round((paidOrLater / totalContacts) * 100) : 0;
   const funnelStages = stageOrder.filter((s) => s !== "LOST");
   const maxFunnelCount = Math.max(1, ...funnelStages.map((s) => countByStage[s] ?? 0));
+
+  const leadsByDay = new Map<string, number>();
+  for (const lead of recentLeads) {
+    const key = getAlmatyDateKey(lead.createdAt);
+    leadsByDay.set(key, (leadsByDay.get(key) ?? 0) + 1);
+  }
+  const leadsChartDays = Array.from({ length: LEADS_CHART_DAYS }, (_, i) => {
+    const date = new Date(Date.now() - (LEADS_CHART_DAYS - 1 - i) * 24 * 60 * 60 * 1000);
+    const key = getAlmatyDateKey(date);
+    return { key, count: leadsByDay.get(key) ?? 0, date };
+  });
+  const maxLeadsCount = Math.max(1, ...leadsChartDays.map((d) => d.count));
+  const totalRecentLeads = leadsChartDays.reduce((sum, d) => sum + d.count, 0);
 
   return (
     <div className="space-y-8">
@@ -115,6 +131,36 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-ink-800">Новые лиды за {LEADS_CHART_DAYS} дней</h2>
+          <span className="text-xs text-ink-400">Всего: {totalRecentLeads}</span>
+        </div>
+        {totalRecentLeads === 0 ? (
+          <p className="text-sm text-ink-400">Пока нет новых лидов за этот период</p>
+        ) : (
+          <div className="flex h-32 items-end gap-1.5 sm:gap-2">
+            {leadsChartDays.map((day) => {
+              const heightPct = Math.max(4, Math.round((day.count / maxLeadsCount) * 100));
+              return (
+                <div key={day.key} className="flex flex-1 flex-col items-center gap-1">
+                  {day.count > 0 && <span className="text-[10px] font-medium text-ink-600">{day.count}</span>}
+                  <div className="flex h-20 w-full items-end">
+                    <div
+                      className={`w-full rounded-t transition-all ${day.count > 0 ? "bg-brand-500" : "bg-ink-100"}`}
+                      style={{ height: `${day.count > 0 ? heightPct : 6}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-ink-400">
+                    {new Intl.DateTimeFormat("ru-RU", { timeZone: "Asia/Almaty", day: "2-digit", month: "2-digit" }).format(day.date)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <TaskWidget
           title="Просроченные задачи"
@@ -135,6 +181,14 @@ export default async function DashboardPage() {
       </section>
     </div>
   );
+}
+
+async function getRecentLeads() {
+  const since = new Date(Date.now() - LEADS_CHART_DAYS * 24 * 60 * 60 * 1000);
+  return prisma.contact.findMany({
+    where: { deletedAt: null, createdAt: { gte: since } },
+    select: { createdAt: true },
+  });
 }
 
 async function getOverdueTasks() {

@@ -14,6 +14,15 @@ export function getAlmatyDayBounds(reference: Date = new Date()) {
   };
 }
 
+/** "YYYY-MM-DD" key for the Almaty calendar day containing `date`. */
+export function getAlmatyDateKey(date: Date) {
+  const shifted = new Date(date.getTime() + ALMATY_OFFSET_MS);
+  const y = shifted.getUTCFullYear();
+  const m = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(shifted.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function formatDateAlmaty(date: Date) {
   return new Intl.DateTimeFormat("ru-RU", {
     timeZone: "Asia/Almaty",
