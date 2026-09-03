@@ -23,7 +23,7 @@ export function ActivityTimeline({ contactId, activities }: { contactId: string;
         />
         <button
           type="submit"
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700"
+          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 active:scale-[0.98]"
         >
           Добавить заметку
         </button>

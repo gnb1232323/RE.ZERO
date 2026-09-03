@@ -107,39 +107,46 @@ export function Sidebar({ userName }: { userName: string }) {
         </button>
       </header>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-ink-900/40" onClick={() => setMobileOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-pop">
-            <div className="flex items-center justify-between px-5 py-5">
-              <span className="flex items-center gap-2 text-sm font-semibold text-brand-800">
-                <span className="h-2.5 w-2.5 rounded-full bg-lime-400" />
-                RE ZERO CRM
-              </span>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                aria-label="Закрыть"
-                className="flex h-8 w-8 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100"
-              >
-                <CloseIcon className="h-4 w-4" />
-              </button>
-            </div>
-            <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-            <div className="mt-auto border-t border-ink-100 px-3 py-4">
-              <div className="flex items-center justify-between rounded-lg px-3 py-2">
-                <span className="text-sm text-ink-700">{userName}</span>
-                <form action={logout}>
-                  <button type="submit" className="text-sm text-ink-500 hover:text-danger-600">
-                    Выйти
-                  </button>
-                </form>
-              </div>
+      {/* Mobile drawer — always mounted, animated via transform/opacity so open/close is smooth */}
+      <div
+        className={`fixed inset-0 z-40 transition-opacity duration-200 md:hidden ${
+          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="absolute inset-0 bg-ink-900/40" onClick={() => setMobileOpen(false)} />
+        <div
+          className={`absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-pop transition-transform duration-200 ease-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between px-5 py-5">
+            <span className="flex items-center gap-2 text-sm font-semibold text-brand-800">
+              <span className="h-2.5 w-2.5 rounded-full bg-lime-400" />
+              RE ZERO CRM
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Закрыть"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-ink-500 transition hover:bg-ink-100"
+            >
+              <CloseIcon className="h-4 w-4" />
+            </button>
+          </div>
+          <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+          <div className="mt-auto border-t border-ink-100 px-3 py-4">
+            <div className="flex items-center justify-between rounded-lg px-3 py-2">
+              <span className="text-sm text-ink-700">{userName}</span>
+              <form action={logout}>
+                <button type="submit" className="text-sm text-ink-500 transition hover:text-danger-600">
+                  Выйти
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }

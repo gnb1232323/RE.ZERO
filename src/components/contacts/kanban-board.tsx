@@ -58,7 +58,7 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
                   setSelectedStage(stage);
                   e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
                 }}
-                className={`flex flex-shrink-0 snap-start items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`flex flex-shrink-0 snap-start items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-95 ${
                   isActive ? `${colors.bg} ${colors.text} ring-2 ring-inset ${colors.ring}` : "bg-white text-ink-500 ring-1 ring-inset ring-ink-200"
                 }`}
               >
@@ -69,7 +69,7 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
             );
           })}
         </div>
-        <div className="space-y-2">
+        <div key={selectedStage} className="animate-fade-in space-y-2">
           {byStage[selectedStage]?.length === 0 && (
             <div className="rounded-lg border border-dashed border-ink-200 py-8 text-center text-sm text-ink-400">
               Нет контактов на этой стадии

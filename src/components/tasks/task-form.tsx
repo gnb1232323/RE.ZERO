@@ -37,7 +37,7 @@ export function TaskForm({ contactId, users }: { contactId: string; users: { id:
       <button
         type="submit"
         disabled={pending}
-        className="flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 disabled:opacity-50"
+        className="flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-50"
       >
         <PlusIcon className="h-3.5 w-3.5" />
         {pending ? "..." : "Добавить"}

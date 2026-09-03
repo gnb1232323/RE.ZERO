@@ -25,9 +25,9 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
 
   if (!showForm && student) {
     return (
-      <div className="space-y-1.5 text-sm">
+      <div className="animate-fade-in space-y-1.5 text-sm">
         <div className="flex items-center justify-end">
-          <button type="button" onClick={() => setShowForm(true)} className="text-xs text-ink-500 hover:underline">
+          <button type="button" onClick={() => setShowForm(true)} className="text-xs text-ink-500 transition hover:underline">
             Редактировать
           </button>
         </div>
@@ -46,7 +46,7 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
   }
 
   return (
-    <form action={action} className="space-y-3">
+    <form action={action} className="animate-fade-in space-y-3">
       <input type="hidden" name="contactId" value={contactId} />
 
       <div className="grid grid-cols-2 gap-3">
@@ -133,7 +133,7 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 disabled:opacity-50"
+          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-50"
         >
           {pending ? "Сохранение..." : "Сохранить"}
         </button>

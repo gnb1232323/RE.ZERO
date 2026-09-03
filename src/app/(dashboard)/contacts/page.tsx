@@ -59,7 +59,7 @@ export default async function ContactsPage({
         </div>
         <Link
           href="/contacts/new"
-          className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+          className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 active:scale-[0.98]"
         >
           <PlusIcon className="h-4 w-4" />
           Новый контакт
