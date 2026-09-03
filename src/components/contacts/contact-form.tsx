@@ -4,6 +4,7 @@ import { useActionState, useRef } from "react";
 import Link from "next/link";
 import { createContact, updateContact } from "@/lib/actions/contacts";
 import { sourceLabels, formatLabels } from "@/lib/labels";
+import { formatPhoneInput } from "@/lib/phone-format";
 import { AlertIcon } from "@/components/icons";
 import type { Contact } from "@/generated/prisma/client";
 
@@ -55,7 +56,7 @@ export function ContactForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Имя" name="fullName" required defaultValue={contact?.fullName} errors={state?.errors?.fullName} />
-        <Field label="Телефон" name="phone" required defaultValue={contact?.phone} errors={state?.errors?.phone} />
+        <PhoneField defaultValue={contact?.phone} errors={state?.errors?.phone} />
         <Field label="Email" name="email" type="email" defaultValue={contact?.email ?? ""} errors={state?.errors?.email} />
         <Field label="Instagram" name="instagram" defaultValue={contact?.instagram ?? ""} errors={state?.errors?.instagram} />
         <Field label="WhatsApp" name="whatsapp" defaultValue={contact?.whatsapp ?? ""} errors={state?.errors?.whatsapp} />
@@ -146,6 +147,32 @@ function Field({
         required={required}
         placeholder={placeholder}
         defaultValue={defaultValue}
+        className={inputClasses}
+      />
+      {errors && <p className="mt-1 text-sm text-danger-600">{errors[0]}</p>}
+    </div>
+  );
+}
+
+function PhoneField({ defaultValue, errors }: { defaultValue?: string; errors?: string[] }) {
+  return (
+    <div>
+      <label htmlFor="phone" className={labelClasses}>
+        Телефон
+      </label>
+      <input
+        id="phone"
+        name="phone"
+        type="tel"
+        required
+        defaultValue={formatPhoneInput(defaultValue ?? "")}
+        onChange={(e) => {
+          e.target.value = formatPhoneInput(e.target.value);
+        }}
+        onFocus={(e) => {
+          if (e.target.value === "+7") e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+        }}
+        placeholder="+7 700 000 00 00"
         className={inputClasses}
       />
       {errors && <p className="mt-1 text-sm text-danger-600">{errors[0]}</p>}

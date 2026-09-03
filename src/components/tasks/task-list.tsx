@@ -10,7 +10,7 @@ type TaskRow = {
   title: string;
   dueAt: Date;
   status: "OPEN" | "DONE" | "CANCELLED";
-  assignedTo: { name: string };
+  assignedTo: { name: string } | null;
   contact?: { id: string; fullName: string };
 };
 
@@ -35,7 +35,7 @@ export function TaskList({ tasks }: { tasks: TaskRow[] }) {
               {task.title}
             </span>
             <span className={`ml-2 ${isOverdue ? "font-medium text-danger-600" : "text-ink-400"}`}>
-              {task.assignedTo.name} · {formatDateAlmaty(task.dueAt)}
+              {task.assignedTo ? task.assignedTo.name : "Без ответственного"} · {formatDateAlmaty(task.dueAt)}
             </span>
             {task.contact && (
               <>

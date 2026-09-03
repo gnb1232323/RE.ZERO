@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PublicLeadSchema } from "@/lib/validations/public-lead";
+import { notifyTelegram } from "@/lib/telegram";
+import { formatLabels } from "@/lib/labels";
+import type { LessonFormat } from "@/generated/prisma/enums";
+
+const CRM_BASE_URL = process.env.CRM_BASE_URL ?? "https://crm.159-65-231-17.sslip.io";
 
 const ALLOWED_ORIGINS = [
   process.env.PUBLIC_SITE_ORIGIN,
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true }, { headers: corsHeaders(request) });
   }
 
-  await prisma.contact.create({
+  const contact = await prisma.contact.create({
     data: {
       fullName: data.fullName,
       phone: data.phone,
@@ -90,6 +95,23 @@ export async function POST(request: NextRequest) {
       stage: "LEAD",
     },
   });
+
+  await prisma.task.create({
+    data: {
+      contactId: contact.id,
+      title: `Написать клиенту с сайта: ${data.fullName}`,
+      dueAt: new Date(),
+    },
+  });
+
+  const formatLabel = data.format ? formatLabels[data.format as LessonFormat] : "не указан";
+  await notifyTelegram(
+    `🆕 <b>Новый клиент с сайта</b>\n` +
+      `${data.fullName}\n` +
+      `Тел: ${data.phone}\n` +
+      `Формат: ${formatLabel}${data.comment ? `\nКомментарий: ${data.comment}` : ""}\n\n` +
+      `${CRM_BASE_URL}/contacts/${contact.id}`
+  );
 
   return NextResponse.json({ ok: true }, { headers: corsHeaders(request) });
 }
