@@ -24,10 +24,11 @@ services:
       db:
         condition: service_healthy
     ports:
-      # Exposed directly so the app is reachable even before a domain/Caddy is set up
-      # (see docker/DEPLOY.md "Если домена пока нет"). Harmless to leave open once
-      # Caddy is running too — Caddy talks to the app over the internal network.
-      - "3000:3000"
+      # Bound to localhost only — reachable from a reverse proxy (Caddy, or an
+      # existing nginx) running on this same host, but never directly from the
+      # internet in plaintext. See docker/DEPLOY.md for exposing it publicly
+      # without a real domain (sslip.io), which is safer than opening this port.
+      - "127.0.0.1:3000:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       SESSION_SECRET: ${SESSION_SECRET}
