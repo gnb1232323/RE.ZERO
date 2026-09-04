@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { stageLabels, stageOrder, sourceLabels, formatLabels } from "@/lib/labels";
 import { StageBadge } from "@/components/contacts/stage-badge";
 import { PlusIcon, SearchIcon } from "@/components/icons";
@@ -31,6 +32,7 @@ export default async function ContactsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  await requireRole("OWNER", "SALES");
   const params = await searchParams;
 
   const contacts = await prisma.contact.findMany({

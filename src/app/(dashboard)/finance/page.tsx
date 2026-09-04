@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { formatMoney } from "@/lib/money";
 import { sourceLabels, paymentStatusLabels } from "@/lib/labels";
 import { CoinsIcon } from "@/components/icons";
@@ -17,6 +18,9 @@ const monthNames = [
 ];
 
 export default async function FinancePage() {
+  const user = await requireRole("OWNER", "MARKETING");
+  const canDrillIntoContacts = user.role === "OWNER";
+
   const [students, contactsBySource] = await Promise.all([
     prisma.student.findMany({
       where: { contact: { deletedAt: null } },
@@ -85,10 +89,33 @@ export default async function FinancePage() {
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MoneyStat label="Всего по студентам" value={totalRevenue} tone="brand" href="/contacts?hasStudent=true" />
-        <MoneyStat label={paymentStatusLabels.PAID} value={totalByStatus.PAID.sum} count={totalByStatus.PAID.count} tone="PAID" href="/contacts?paymentStatus=PAID" />
-        <MoneyStat label={paymentStatusLabels.PARTIAL} value={totalByStatus.PARTIAL.sum} count={totalByStatus.PARTIAL.count} tone="PARTIAL" href="/contacts?paymentStatus=PARTIAL" />
-        <MoneyStat label={paymentStatusLabels.UNPAID} value={totalByStatus.UNPAID.sum} count={totalByStatus.UNPAID.count} tone="UNPAID" href="/contacts?paymentStatus=UNPAID" />
+        <MoneyStat
+          label="Всего по студентам"
+          value={totalRevenue}
+          tone="brand"
+          href={canDrillIntoContacts ? "/contacts?hasStudent=true" : undefined}
+        />
+        <MoneyStat
+          label={paymentStatusLabels.PAID}
+          value={totalByStatus.PAID.sum}
+          count={totalByStatus.PAID.count}
+          tone="PAID"
+          href={canDrillIntoContacts ? "/contacts?paymentStatus=PAID" : undefined}
+        />
+        <MoneyStat
+          label={paymentStatusLabels.PARTIAL}
+          value={totalByStatus.PARTIAL.sum}
+          count={totalByStatus.PARTIAL.count}
+          tone="PARTIAL"
+          href={canDrillIntoContacts ? "/contacts?paymentStatus=PARTIAL" : undefined}
+        />
+        <MoneyStat
+          label={paymentStatusLabels.UNPAID}
+          value={totalByStatus.UNPAID.sum}
+          count={totalByStatus.UNPAID.count}
+          tone="UNPAID"
+          href={canDrillIntoContacts ? "/contacts?paymentStatus=UNPAID" : undefined}
+        />
       </section>
 
       <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
@@ -98,27 +125,38 @@ export default async function FinancePage() {
           <p className="text-sm text-ink-400">Пока нет данных</p>
         ) : (
           <div className="space-y-2.5">
-            {conversionBySource.map((row) => (
-              <Link
-                key={row.source}
-                href={`/contacts?source=${row.source}`}
-                className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
-              >
-                <span className="w-20 flex-shrink-0 truncate text-sm text-ink-600 group-hover:text-ink-900 sm:w-28">
-                  {sourceLabels[row.source]}
-                </span>
-                <span className="h-5 flex-1 overflow-hidden rounded bg-ink-100">
-                  <span
-                    className="block h-full rounded bg-brand-500 transition-all"
-                    style={{ width: `${Math.max(2, row.rate)}%` }}
-                  />
-                </span>
-                <span className="hidden w-28 flex-shrink-0 text-right text-xs text-ink-400 sm:block">
-                  {row.studentCount} из {row.contactCount}
-                </span>
-                <span className="w-10 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{row.rate}%</span>
-              </Link>
-            ))}
+            {conversionBySource.map((row) => {
+              const rowContent = (
+                <>
+                  <span className="w-20 flex-shrink-0 truncate text-sm text-ink-600 group-hover:text-ink-900 sm:w-28">
+                    {sourceLabels[row.source]}
+                  </span>
+                  <span className="h-5 flex-1 overflow-hidden rounded bg-ink-100">
+                    <span
+                      className="block h-full rounded bg-brand-500 transition-all"
+                      style={{ width: `${Math.max(2, row.rate)}%` }}
+                    />
+                  </span>
+                  <span className="hidden w-28 flex-shrink-0 text-right text-xs text-ink-400 sm:block">
+                    {row.studentCount} из {row.contactCount}
+                  </span>
+                  <span className="w-10 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{row.rate}%</span>
+                </>
+              );
+              return canDrillIntoContacts ? (
+                <Link
+                  key={row.source}
+                  href={`/contacts?source=${row.source}`}
+                  className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
+                >
+                  {rowContent}
+                </Link>
+              ) : (
+                <div key={row.source} className="group flex items-center gap-3 rounded-md py-1">
+                  {rowContent}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
@@ -151,71 +189,73 @@ export default async function FinancePage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-ink-200 bg-white shadow-card">
-        <h2 className="border-b border-ink-100 px-5 py-4 text-sm font-semibold text-ink-800">Оплаты студентов</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-ink-200 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
-              <tr>
-                <th className="px-5 py-3">Студент</th>
-                <th className="px-5 py-3">Начало курса</th>
-                <th className="px-5 py-3">Источник</th>
-                <th className="px-5 py-3">Сумма</th>
-                <th className="px-5 py-3">Статус</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.length === 0 && (
+      {canDrillIntoContacts && (
+        <section className="rounded-xl border border-ink-200 bg-white shadow-card">
+          <h2 className="border-b border-ink-100 px-5 py-4 text-sm font-semibold text-ink-800">Оплаты студентов</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-ink-200 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink-400">
-                    Студентов пока нет
-                  </td>
+                  <th className="px-5 py-3">Студент</th>
+                  <th className="px-5 py-3">Начало курса</th>
+                  <th className="px-5 py-3">Источник</th>
+                  <th className="px-5 py-3">Сумма</th>
+                  <th className="px-5 py-3">Статус</th>
                 </tr>
-              )}
-              {students.map((s, i) => {
-                const colors = statusToneClasses[s.paymentStatus];
-                const href = `/contacts/${s.contact.id}`;
-                return (
-                  <tr key={i} className="cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50">
-                    <td className="p-0">
-                      <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800 hover:text-brand-700">
-                        {s.contact.fullName}
-                      </Link>
-                    </td>
-                    <td className="p-0">
-                      <Link href={href} className="block px-5 py-2.5 text-ink-600">
-                        {new Intl.DateTimeFormat("ru-RU", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" }).format(
-                          s.courseStartDate
-                        )}
-                      </Link>
-                    </td>
-                    <td className="p-0">
-                      <Link href={href} className="block px-5 py-2.5 text-ink-600">
-                        {sourceLabels[s.contact.source]}
-                      </Link>
-                    </td>
-                    <td className="p-0">
-                      <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800">
-                        {formatMoney(s.paymentAmount.toString())}
-                      </Link>
-                    </td>
-                    <td className="p-0">
-                      <Link href={href} className="flex items-center px-5 py-2.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${colors.bg} ${colors.text}`}
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full ${colors.dot}`} />
-                          {paymentStatusLabels[s.paymentStatus]}
-                        </span>
-                      </Link>
+              </thead>
+              <tbody>
+                {students.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink-400">
+                      Студентов пока нет
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                )}
+                {students.map((s, i) => {
+                  const colors = statusToneClasses[s.paymentStatus];
+                  const href = `/contacts/${s.contact.id}`;
+                  return (
+                    <tr key={i} className="cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50">
+                      <td className="p-0">
+                        <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800 hover:text-brand-700">
+                          {s.contact.fullName}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className="block px-5 py-2.5 text-ink-600">
+                          {new Intl.DateTimeFormat("ru-RU", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" }).format(
+                            s.courseStartDate
+                          )}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className="block px-5 py-2.5 text-ink-600">
+                          {sourceLabels[s.contact.source]}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800">
+                          {formatMoney(s.paymentAmount.toString())}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className="flex items-center px-5 py-2.5">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${colors.bg} ${colors.text}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${colors.dot}`} />
+                            {paymentStatusLabels[s.paymentStatus]}
+                          </span>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

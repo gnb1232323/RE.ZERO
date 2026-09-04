@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { KanbanBoard } from "@/components/contacts/kanban-board";
 
 export default async function KanbanPage() {
+  await requireRole("OWNER", "SALES");
+
   const rows = await prisma.contact.findMany({
     where: { deletedAt: null },
     orderBy: { createdAt: "desc" },

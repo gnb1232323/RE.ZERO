@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { TaskList } from "@/components/tasks/task-list";
 
 export default async function TasksPage() {
+  await requireRole("OWNER", "SALES");
+
   const [openTasks, doneTasks, users] = await Promise.all([
     prisma.task.findMany({
       where: { status: "OPEN" },

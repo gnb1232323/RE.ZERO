@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { ContactForm } from "@/components/contacts/contact-form";
 
 export default async function NewContactPage() {
+  await requireRole("OWNER", "SALES");
+
   const owners = await prisma.user.findMany({
     select: { id: true, name: true },
     orderBy: { name: "asc" },

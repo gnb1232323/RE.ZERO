@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dal";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { ActivityTimeline } from "@/components/contacts/activity-timeline";
 import { StudentPanel, type SerializedStudent } from "@/components/contacts/student-panel";
@@ -15,6 +16,7 @@ export default async function ContactDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireRole("OWNER", "SALES");
   const { id } = await params;
 
   const [contact, users, activities, tasks, student] = await Promise.all([

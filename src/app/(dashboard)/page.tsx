@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/dal";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
 import { getAlmatyDayBounds, getAlmatyDateKey, formatDateAlmaty } from "@/lib/date";
 import { ContactsIcon, TrendUpIcon, CoinsIcon, ClockIcon, AlertIcon } from "@/components/icons";
@@ -8,6 +9,12 @@ import { formatMoney } from "@/lib/money";
 const LEADS_CHART_DAYS = 14;
 
 export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const role = user?.role ?? "OWNER";
+  const canSeeMoney = role !== "SALES";
+  const canSeeContactsLinks = role !== "MARKETING";
+  const canSeeTasks = role !== "MARKETING";
+
   const [stageCounts, overdueTasks, todayTasks, studentCount, students, recentLeads] = await Promise.all([
     prisma.contact.groupBy({
       by: ["stage"],
@@ -65,23 +72,37 @@ export default async function DashboardPage() {
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={ContactsIcon} label="Контактов в базе" value={totalContacts} tone="brand" href="/contacts" />
+        <StatCard
+          icon={ContactsIcon}
+          label="Контактов в базе"
+          value={totalContacts}
+          tone="brand"
+          href={canSeeContactsLinks ? "/contacts" : undefined}
+        />
         <StatCard
           icon={CoinsIcon}
           label="Студентов"
           value={studentCount}
-          sublabel={totalValue > 0 ? formatMoney(totalValue) : undefined}
+          sublabel={canSeeMoney && totalValue > 0 ? formatMoney(totalValue) : undefined}
           tone="lime"
-          href="/contacts?hasStudent=true"
+          href={canSeeContactsLinks ? "/contacts?hasStudent=true" : undefined}
         />
-        <StatCard icon={TrendUpIcon} label="Конверсия в оплату" value={`${conversionRate}%`} tone="khaki" href="/contacts?hasStudent=true" />
         <StatCard
-          icon={AlertIcon}
-          label="Просрочено задач"
-          value={overdueTasks.length}
-          tone={overdueTasks.length > 0 ? "danger" : "ink"}
-          href="/tasks"
+          icon={TrendUpIcon}
+          label="Конверсия в оплату"
+          value={`${conversionRate}%`}
+          tone="khaki"
+          href={canSeeContactsLinks ? "/contacts?hasStudent=true" : undefined}
         />
+        {canSeeTasks && (
+          <StatCard
+            icon={AlertIcon}
+            label="Просрочено задач"
+            value={overdueTasks.length}
+            tone={overdueTasks.length > 0 ? "danger" : "ink"}
+            href="/tasks"
+          />
+        )}
       </section>
 
       <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
@@ -90,12 +111,8 @@ export default async function DashboardPage() {
           {funnelStages.map((stage) => {
             const count = countByStage[stage] ?? 0;
             const widthPct = Math.max(4, Math.round((count / maxFunnelCount) * 100));
-            return (
-              <Link
-                key={stage}
-                href={`/contacts?stage=${stage}`}
-                className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
-              >
+            const rowContent = (
+              <>
                 <span className="w-40 flex-shrink-0 truncate text-sm text-ink-600 group-hover:text-ink-900">
                   {stageLabels[stage]}
                 </span>
@@ -105,7 +122,7 @@ export default async function DashboardPage() {
                     style={{ width: `${widthPct}%` }}
                   />
                 </span>
-                {valueByStage[stage] ? (
+                {canSeeMoney && valueByStage[stage] ? (
                   <span className="hidden w-28 flex-shrink-0 truncate text-right text-xs text-ink-400 sm:block">
                     {formatMoney(valueByStage[stage])}
                   </span>
@@ -113,21 +130,43 @@ export default async function DashboardPage() {
                   <span className="hidden w-28 flex-shrink-0 sm:block" />
                 )}
                 <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{count}</span>
+              </>
+            );
+            return canSeeContactsLinks ? (
+              <Link
+                key={stage}
+                href={`/contacts?stage=${stage}`}
+                className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
+              >
+                {rowContent}
               </Link>
+            ) : (
+              <div key={stage} className="group flex items-center gap-3 rounded-md py-1">
+                {rowContent}
+              </div>
             );
           })}
-          {(countByStage.LOST ?? 0) > 0 && (
-            <Link
-              href="/contacts?stage=LOST"
-              className="group flex items-center gap-3 rounded-md py-1 pt-2 border-t border-ink-100 transition hover:bg-ink-50"
-            >
-              <span className="w-40 flex-shrink-0 truncate text-sm text-danger-600">{stageLabels.LOST}</span>
-              <span className="flex-1" />
-              <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-danger-600">
-                {countByStage.LOST}
-              </span>
-            </Link>
-          )}
+          {(countByStage.LOST ?? 0) > 0 &&
+            (canSeeContactsLinks ? (
+              <Link
+                href="/contacts?stage=LOST"
+                className="group flex items-center gap-3 rounded-md py-1 pt-2 border-t border-ink-100 transition hover:bg-ink-50"
+              >
+                <span className="w-40 flex-shrink-0 truncate text-sm text-danger-600">{stageLabels.LOST}</span>
+                <span className="flex-1" />
+                <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-danger-600">
+                  {countByStage.LOST}
+                </span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3 rounded-md py-1 pt-2 border-t border-ink-100">
+                <span className="w-40 flex-shrink-0 truncate text-sm text-danger-600">{stageLabels.LOST}</span>
+                <span className="flex-1" />
+                <span className="w-8 flex-shrink-0 text-right text-sm font-semibold text-danger-600">
+                  {countByStage.LOST}
+                </span>
+              </div>
+            ))}
         </div>
       </section>
 
@@ -161,24 +200,26 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <TaskWidget
-          title="Просроченные задачи"
-          icon={AlertIcon}
-          tone="danger"
-          tasks={overdueTasks}
-          emptyText="Нет просроченных задач"
-          href="/tasks"
-        />
-        <TaskWidget
-          title="Задачи на сегодня"
-          icon={ClockIcon}
-          tone="brand"
-          tasks={todayTasks}
-          emptyText="На сегодня задач нет"
-          href="/tasks"
-        />
-      </section>
+      {canSeeTasks && (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <TaskWidget
+            title="Просроченные задачи"
+            icon={AlertIcon}
+            tone="danger"
+            tasks={overdueTasks}
+            emptyText="Нет просроченных задач"
+            href="/tasks"
+          />
+          <TaskWidget
+            title="Задачи на сегодня"
+            icon={ClockIcon}
+            tone="brand"
+            tasks={todayTasks}
+            emptyText="На сегодня задач нет"
+            href="/tasks"
+          />
+        </section>
+      )}
     </div>
   );
 }

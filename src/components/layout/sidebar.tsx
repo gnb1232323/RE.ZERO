@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/actions/auth";
+import type { UserRole } from "@/generated/prisma/enums";
 import {
   DashboardIcon,
   ContactsIcon,
@@ -16,12 +17,18 @@ import {
   CloseIcon,
 } from "@/components/icons";
 
-const links = [
+const roleLabels: Record<UserRole, string> = {
+  OWNER: "Владелец",
+  SALES: "Отдел продаж",
+  MARKETING: "Отдел маркетинга",
+};
+
+const links: { href: string; label: string; icon: typeof DashboardIcon; roles?: UserRole[] }[] = [
   { href: "/", label: "Дашборд", icon: DashboardIcon },
-  { href: "/contacts", label: "Контакты", icon: ContactsIcon },
-  { href: "/contacts/kanban", label: "Канбан", icon: KanbanIcon },
-  { href: "/tasks", label: "Задачи", icon: TasksIcon },
-  { href: "/finance", label: "Финансы", icon: FinanceIcon },
+  { href: "/contacts", label: "Контакты", icon: ContactsIcon, roles: ["OWNER", "SALES"] },
+  { href: "/contacts/kanban", label: "Канбан", icon: KanbanIcon, roles: ["OWNER", "SALES"] },
+  { href: "/tasks", label: "Задачи", icon: TasksIcon, roles: ["OWNER", "SALES"] },
+  { href: "/finance", label: "Финансы", icon: FinanceIcon, roles: ["OWNER", "MARKETING"] },
   { href: "/settings", label: "Настройки", icon: SettingsIcon },
 ];
 
@@ -33,10 +40,11 @@ function isLinkActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
-function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavLinks({ pathname, role, onNavigate }: { pathname: string; role: UserRole; onNavigate?: () => void }) {
+  const visibleLinks = links.filter((link) => !link.roles || link.roles.includes(role));
   return (
     <nav className="flex flex-1 flex-col gap-0.5 px-3">
-      {links.map((link) => {
+      {visibleLinks.map((link) => {
         const isActive = isLinkActive(pathname, link.href);
         const Icon = link.icon;
         return (
@@ -59,7 +67,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
   );
 }
 
-export function Sidebar({ userName }: { userName: string }) {
+export function Sidebar({ userName, role }: { userName: string; role: UserRole }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -71,20 +79,23 @@ export function Sidebar({ userName }: { userName: string }) {
           <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-lime-400" />
           <span className="text-[15px] font-semibold tracking-tight text-brand-800">RE ZERO CRM</span>
         </div>
-        <NavLinks pathname={pathname} />
+        <NavLinks pathname={pathname} role={role} />
         <div className="mt-auto border-t border-ink-100 px-3 py-4">
           <div className="flex items-center justify-between rounded-lg px-3 py-2">
             <div className="flex items-center gap-2 overflow-hidden">
               <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
-              <span className="truncate text-sm text-ink-700">{userName}</span>
+              <span className="min-w-0 overflow-hidden">
+                <span className="block truncate text-sm text-ink-700">{userName}</span>
+                <span className="block truncate text-[11px] text-ink-400">{roleLabels[role]}</span>
+              </span>
             </div>
             <form action={logout}>
               <button
                 type="submit"
                 title="Выйти"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-ink-400 transition hover:bg-danger-100 hover:text-danger-600"
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-ink-400 transition hover:bg-danger-100 hover:text-danger-600"
               >
                 <LogoutIcon className="h-4 w-4" />
               </button>
@@ -136,12 +147,15 @@ export function Sidebar({ userName }: { userName: string }) {
               <CloseIcon className="h-4 w-4" />
             </button>
           </div>
-          <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+          <NavLinks pathname={pathname} role={role} onNavigate={() => setMobileOpen(false)} />
           <div className="mt-auto border-t border-ink-100 px-3 py-4">
             <div className="flex items-center justify-between rounded-lg px-3 py-2">
-              <span className="text-sm text-ink-700">{userName}</span>
+              <span className="min-w-0 overflow-hidden">
+                <span className="block truncate text-sm text-ink-700">{userName}</span>
+                <span className="block truncate text-[11px] text-ink-400">{roleLabels[role]}</span>
+              </span>
               <form action={logout}>
-                <button type="submit" className="text-sm text-ink-500 transition hover:text-danger-600">
+                <button type="submit" className="flex-shrink-0 text-sm text-ink-500 transition hover:text-danger-600">
                   Выйти
                 </button>
               </form>

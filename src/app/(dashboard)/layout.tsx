@@ -7,7 +7,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      <Sidebar userName={user?.name ?? ""} />
+      <Sidebar userName={user?.name ?? ""} role={user?.role ?? "OWNER"} />
       <main className="min-w-0 flex-1 px-4 py-6 md:ml-60 md:px-8 md:py-8">
         <div className="mx-auto w-full max-w-6xl">
           <PageTransition>{children}</PageTransition>
