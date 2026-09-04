@@ -29,6 +29,7 @@ export default async function FinancePage() {
         paymentStatus: true,
         courseStartDate: true,
         contact: { select: { id: true, fullName: true, source: true } },
+        receipts: { select: { id: true, driveViewLink: true }, orderBy: { createdAt: "desc" } },
       },
       orderBy: { courseStartDate: "desc" },
     }),
@@ -212,12 +213,13 @@ export default async function FinancePage() {
                   <th className="px-5 py-3">Источник</th>
                   <th className="px-5 py-3">Сумма</th>
                   <th className="px-5 py-3">Статус</th>
+                  <th className="px-5 py-3">Чек</th>
                 </tr>
               </thead>
               <tbody>
                 {students.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink-400">
+                    <td colSpan={6} className="px-5 py-10 text-center text-sm text-ink-400">
                       Студентов пока нет
                     </td>
                   </tr>
@@ -262,6 +264,31 @@ export default async function FinancePage() {
                             {paymentStatusLabels[s.paymentStatus]}
                           </span>
                         </Link>
+                      </td>
+                      <td className="px-5 py-2.5">
+                        {s.receipts.length > 0 ? (
+                          <a
+                            href={s.receipts[0].driveViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={s.receipts.length > 1 ? `Скачать чек (всего ${s.receipts.length})` : "Скачать чек"}
+                            className="transition-smooth inline-flex items-center gap-1.5 rounded-lg bg-lime-100 px-2.5 py-1.5 text-xs font-medium text-lime-700 hover:bg-lime-200 hover:shadow-xs"
+                          >
+                            <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 flex-shrink-0">
+                              <path
+                                d="M9.5 1.5l3 3v7a1 1 0 01-1 1h-9a1 1 0 01-1-1v-9a1 1 0 011-1h7z"
+                                stroke="currentColor"
+                                strokeWidth="1.1"
+                                fill="none"
+                                strokeLinejoin="round"
+                              />
+                              <path d="M4.5 7.5h5M4.5 9.5h5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                            </svg>
+                            {s.receipts.length > 1 ? s.receipts.length : ""}
+                          </a>
+                        ) : (
+                          <span className="text-ink-300">—</span>
+                        )}
                       </td>
                     </tr>
                   );
