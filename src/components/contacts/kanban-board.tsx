@@ -5,6 +5,7 @@ import Link from "next/link";
 import { applyStageChange } from "@/lib/change-stage-client";
 import { stageColors, stageLabels, stageOrder } from "@/lib/labels";
 import { formatMoney } from "@/lib/money";
+import { avatarClasses } from "@/lib/avatar";
 import { StageSelect } from "@/components/contacts/stage-select";
 import { LostReasonModal } from "@/components/contacts/lost-reason-modal";
 import type { PipelineStage } from "@/generated/prisma/enums";
@@ -25,6 +26,7 @@ function stageValue(contacts: KanbanContact[] | undefined) {
 export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
   const [overrides, setOverrides] = useState<Record<string, PipelineStage>>({});
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<PipelineStage>("LEAD");
   const [confirmingLostId, setConfirmingLostId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -66,7 +68,7 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
                   setSelectedStage(stage);
                   e.currentTarget.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
                 }}
-                className={`flex flex-shrink-0 snap-start items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-95 ${
+                className={`transition-smooth flex flex-shrink-0 snap-start items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium active:scale-95 ${
                   isActive ? `${colors.bg} ${colors.text} ring-2 ring-inset ${colors.ring}` : "bg-white text-ink-500 ring-1 ring-inset ring-ink-200"
                 }`}
               >
@@ -82,83 +84,106 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
         )}
         <div key={selectedStage} className="animate-fade-in space-y-2">
           {byStage[selectedStage]?.length === 0 && (
-            <div className="rounded-lg border border-dashed border-ink-200 py-8 text-center text-sm text-ink-400">
+            <div className="rounded-xl border border-dashed border-ink-200 py-10 text-center text-sm text-ink-400">
               Нет контактов на этой стадии
             </div>
           )}
-          {byStage[selectedStage]?.map((contact) => (
-            <KanbanCard key={contact.id} contact={contact} isMoving={isPending && Boolean(overrides[contact.id])} />
+          {byStage[selectedStage]?.map((contact, i) => (
+            <KanbanCard
+              key={contact.id}
+              contact={contact}
+              isMoving={isPending && Boolean(overrides[contact.id])}
+              index={i}
+            />
           ))}
         </div>
       </div>
 
       {/* Desktop: full multi-column board with drag-and-drop */}
-      <div className="hidden gap-4 overflow-x-auto pb-4 md:flex">
-        {stageOrder.map((stage) => (
-          <div
-            key={stage}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOverStage(stage);
-            }}
-            onDragLeave={() => setDragOverStage((s) => (s === stage ? null : s))}
-            onDrop={(e) => {
-              e.preventDefault();
-              const contactId = e.dataTransfer.getData("text/plain");
-              if (contactId) moveTo(contactId, stage);
-              setDragOverStage(null);
-            }}
-            className="w-64 flex-shrink-0"
-          >
-            <div className={`mb-2 rounded-t-md border-t-2 px-2 py-1.5 ${stageColors[stage].border} ${stageColors[stage].bg}`}>
-              <div className="flex items-center justify-between">
-                <h2 className={`flex items-center gap-1.5 text-sm font-medium ${stageColors[stage].text}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${stageColors[stage].dot}`} />
+      <div className="hidden gap-3 overflow-x-auto pb-4 md:flex">
+        {stageOrder.map((stage) => {
+          const isDragTarget = dragOverStage === stage;
+          const colors = stageColors[stage];
+          return (
+            <div
+              key={stage}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverStage(stage);
+              }}
+              onDragLeave={() => setDragOverStage((s) => (s === stage ? null : s))}
+              onDrop={(e) => {
+                e.preventDefault();
+                const contactId = e.dataTransfer.getData("text/plain");
+                if (contactId) moveTo(contactId, stage);
+                setDragOverStage(null);
+                setDraggingId(null);
+              }}
+              className="w-[264px] flex-shrink-0"
+            >
+              <div className="mb-2.5 flex items-center justify-between px-1">
+                <h2 className="flex items-center gap-1.5 text-sm font-medium text-ink-700">
+                  <span className={`h-2 w-2 rounded-full ${colors.dot}`} />
                   {stageLabels[stage]}
+                  <span className="rounded-full bg-ink-100 px-1.5 py-0.5 text-[11px] font-medium text-ink-500">
+                    {byStage[stage]?.length ?? 0}
+                  </span>
                 </h2>
-                <span className={`text-xs font-medium ${stageColors[stage].text}`}>{byStage[stage]?.length ?? 0}</span>
               </div>
               {stageValue(byStage[stage]) && (
-                <p className={`mt-0.5 text-[11px] ${stageColors[stage].text} opacity-80`}>{stageValue(byStage[stage])}</p>
+                <p className="mb-2 px-1 text-[11px] font-medium text-ink-400">{stageValue(byStage[stage])}</p>
               )}
+              <div
+                className={`transition-smooth min-h-[80px] space-y-2 rounded-xl p-1.5 ${
+                  isDragTarget ? "bg-brand-50 ring-2 ring-brand-300 ring-offset-2 ring-offset-ink-50" : "bg-ink-100/40"
+                }`}
+              >
+                {byStage[stage]?.map((contact, i) => (
+                  <div
+                    key={contact.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", contact.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      setDraggingId(contact.id);
+                    }}
+                    onDragEnd={() => setDraggingId(null)}
+                    style={{ "--stagger-i": i } as React.CSSProperties}
+                    className={`stagger-item card-hover group cursor-grab rounded-xl border border-ink-200 bg-white p-3 shadow-card active:cursor-grabbing ${
+                      isPending && overrides[contact.id] ? "opacity-60" : ""
+                    } ${draggingId === contact.id ? "opacity-40" : ""}`}
+                  >
+                    <div className="mb-2 flex items-center gap-2">
+                      <span
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${avatarClasses(contact.fullName)}`}
+                      >
+                        {contact.fullName.slice(0, 1).toUpperCase()}
+                      </span>
+                      <Link
+                        href={`/contacts/${contact.id}`}
+                        className="min-w-0 flex-1 truncate text-sm font-medium text-ink-800 group-hover:text-brand-700"
+                      >
+                        {contact.fullName}
+                      </Link>
+                    </div>
+                    <p className="mb-2 truncate text-xs text-ink-400">{contact.phone}</p>
+                    {contact.paymentAmount ? (
+                      <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+                        {formatMoney(contact.paymentAmount)}
+                      </p>
+                    ) : null}
+                    <StageSelect contactId={contact.id} currentStage={contact.stage} />
+                  </div>
+                ))}
+                {byStage[stage]?.length === 0 && (
+                  <div className="rounded-lg border border-dashed border-ink-300 py-5 text-center text-xs text-ink-400">
+                    Перетащите сюда
+                  </div>
+                )}
+              </div>
             </div>
-            <div
-              className={`min-h-[60px] space-y-2 rounded-md p-1 transition ${
-                dragOverStage === stage ? "bg-brand-50 ring-2 ring-brand-200" : ""
-              }`}
-            >
-              {byStage[stage]?.map((contact) => (
-                <div
-                  key={contact.id}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", contact.id);
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  className={`cursor-grab rounded-lg border border-ink-200 bg-white p-3 shadow-card transition active:cursor-grabbing hover:shadow-pop ${
-                    isPending && overrides[contact.id] ? "opacity-60" : ""
-                  }`}
-                >
-                  <Link href={`/contacts/${contact.id}`} className="text-sm font-medium text-ink-800 hover:text-brand-700">
-                    {contact.fullName}
-                  </Link>
-                  <p className="text-xs text-ink-500">{contact.phone}</p>
-                  {contact.paymentAmount ? (
-                    <p className="mb-2 text-xs font-medium text-lime-700">{formatMoney(contact.paymentAmount)}</p>
-                  ) : (
-                    <div className="mb-2" />
-                  )}
-                  <StageSelect contactId={contact.id} currentStage={contact.stage} />
-                </div>
-              ))}
-              {byStage[stage]?.length === 0 && (
-                <div className="rounded-lg border border-dashed border-ink-200 py-4 text-center text-xs text-ink-300">
-                  Перетащите сюда
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {confirmingLostId && (
@@ -176,18 +201,28 @@ export function KanbanBoard({ contacts }: { contacts: KanbanContact[] }) {
   );
 }
 
-function KanbanCard({ contact, isMoving }: { contact: KanbanContact; isMoving: boolean }) {
+function KanbanCard({ contact, isMoving, index }: { contact: KanbanContact; isMoving: boolean; index: number }) {
   return (
-    <div className={`rounded-lg border border-ink-200 bg-white p-3 shadow-card transition ${isMoving ? "opacity-60" : ""}`}>
-      <Link href={`/contacts/${contact.id}`} className="text-sm font-medium text-ink-800 hover:text-brand-700">
-        {contact.fullName}
-      </Link>
-      <p className="text-xs text-ink-500">{contact.phone}</p>
+    <div
+      style={{ "--stagger-i": index } as React.CSSProperties}
+      className={`stagger-item rounded-xl border border-ink-200 bg-white p-3.5 shadow-card ${isMoving ? "opacity-60" : ""}`}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarClasses(contact.fullName)}`}
+        >
+          {contact.fullName.slice(0, 1).toUpperCase()}
+        </span>
+        <Link href={`/contacts/${contact.id}`} className="min-w-0 flex-1 truncate text-sm font-medium text-ink-800 hover:text-brand-700">
+          {contact.fullName}
+        </Link>
+      </div>
+      <p className="mb-2 text-xs text-ink-400">{contact.phone}</p>
       {contact.paymentAmount ? (
-        <p className="mb-2 text-xs font-medium text-lime-700">{formatMoney(contact.paymentAmount)}</p>
-      ) : (
-        <div className="mb-2" />
-      )}
+        <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-lime-100 px-2 py-0.5 text-xs font-medium text-lime-700">
+          {formatMoney(contact.paymentAmount)}
+        </p>
+      ) : null}
       <StageSelect contactId={contact.id} currentStage={contact.stage} />
     </div>
   );

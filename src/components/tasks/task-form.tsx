@@ -5,7 +5,7 @@ import { createTask } from "@/lib/actions/tasks";
 import { PlusIcon } from "@/components/icons";
 
 const inputClasses =
-  "rounded-md border border-ink-300 px-2 py-1.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
+  "rounded-lg border border-ink-300 bg-ink-50/60 px-2.5 py-1.5 text-sm outline-none transition-smooth focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-100";
 
 export function TaskForm({ contactId, users }: { contactId: string; users: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState(createTask, undefined);
@@ -37,7 +37,7 @@ export function TaskForm({ contactId, users }: { contactId: string; users: { id:
       <button
         type="submit"
         disabled={pending}
-        className="flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-sm text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-50"
+        className="transition-smooth flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-sm text-white hover:bg-brand-700 hover:shadow-pop active:scale-[0.98] disabled:opacity-50"
       >
         <PlusIcon className="h-3.5 w-3.5" />
         {pending ? "..." : "Добавить"}

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { formatMoney } from "@/lib/money";
 import { sourceLabels, paymentStatusLabels } from "@/lib/labels";
-import { CoinsIcon } from "@/components/icons";
+import { CoinsIcon, TrendUpIcon } from "@/components/icons";
 import type { LeadSource, PaymentStatus } from "@/generated/prisma/enums";
 
 const statusToneClasses: Record<PaymentStatus, { bg: string; text: string; dot: string }> = {
@@ -82,9 +82,9 @@ export default async function FinancePage() {
   const maxMonthValue = Math.max(1, ...monthRows.map(([, v]) => v));
 
   return (
-    <div className="space-y-8">
+    <div className="animate-fade-in space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-ink-900">Финансы</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Финансы</h1>
         <p className="mt-0.5 text-sm text-ink-500">Оплаты студентов и конверсия по источникам</p>
       </div>
 
@@ -94,6 +94,7 @@ export default async function FinancePage() {
           value={totalRevenue}
           tone="brand"
           href={canDrillIntoContacts ? "/contacts?hasStudent=true" : undefined}
+          index={0}
         />
         <MoneyStat
           label={paymentStatusLabels.PAID}
@@ -101,6 +102,7 @@ export default async function FinancePage() {
           count={totalByStatus.PAID.count}
           tone="PAID"
           href={canDrillIntoContacts ? "/contacts?paymentStatus=PAID" : undefined}
+          index={1}
         />
         <MoneyStat
           label={paymentStatusLabels.PARTIAL}
@@ -108,6 +110,7 @@ export default async function FinancePage() {
           count={totalByStatus.PARTIAL.count}
           tone="PARTIAL"
           href={canDrillIntoContacts ? "/contacts?paymentStatus=PARTIAL" : undefined}
+          index={2}
         />
         <MoneyStat
           label={paymentStatusLabels.UNPAID}
@@ -115,26 +118,32 @@ export default async function FinancePage() {
           count={totalByStatus.UNPAID.count}
           tone="UNPAID"
           href={canDrillIntoContacts ? "/contacts?paymentStatus=UNPAID" : undefined}
+          index={3}
         />
       </section>
 
-      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
-        <h2 className="mb-1 text-sm font-semibold text-ink-800">Конверсия в оплату по источникам</h2>
-        <p className="mb-4 text-xs text-ink-400">Доля контактов из каждого источника, ставших студентами</p>
+      <section className="card-hover rounded-2xl border border-ink-200 bg-white p-5 shadow-card sm:p-6">
+        <div className="mb-1 flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-100 text-brand-700">
+            <TrendUpIcon className="h-3.5 w-3.5" />
+          </span>
+          <h2 className="text-sm font-semibold text-ink-800">Конверсия в оплату по источникам</h2>
+        </div>
+        <p className="mb-4 pl-8 text-xs text-ink-400">Доля контактов из каждого источника, ставших студентами</p>
         {conversionBySource.length === 0 ? (
           <p className="text-sm text-ink-400">Пока нет данных</p>
         ) : (
-          <div className="space-y-2.5">
-            {conversionBySource.map((row) => {
+          <div className="space-y-1">
+            {conversionBySource.map((row, i) => {
               const rowContent = (
                 <>
                   <span className="w-20 flex-shrink-0 truncate text-sm text-ink-600 group-hover:text-ink-900 sm:w-28">
                     {sourceLabels[row.source]}
                   </span>
-                  <span className="h-5 flex-1 overflow-hidden rounded bg-ink-100">
+                  <span className="h-6 flex-1 overflow-hidden rounded-full bg-ink-100">
                     <span
-                      className="block h-full rounded bg-brand-500 transition-all"
-                      style={{ width: `${Math.max(2, row.rate)}%` }}
+                      className="block h-full rounded-full bg-brand-500 transition-[width] duration-700"
+                      style={{ width: `${Math.max(2, row.rate)}%`, transitionTimingFunction: "var(--ease-out)" }}
                     />
                   </span>
                   <span className="hidden w-28 flex-shrink-0 text-right text-xs text-ink-400 sm:block">
@@ -143,16 +152,13 @@ export default async function FinancePage() {
                   <span className="w-10 flex-shrink-0 text-right text-sm font-semibold text-ink-800">{row.rate}%</span>
                 </>
               );
+              const rowClass = "stagger-item transition-smooth group -mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5";
               return canDrillIntoContacts ? (
-                <Link
-                  key={row.source}
-                  href={`/contacts?source=${row.source}`}
-                  className="group flex items-center gap-3 rounded-md py-1 transition hover:bg-ink-50"
-                >
+                <Link key={row.source} href={`/contacts?source=${row.source}`} className={`${rowClass} hover:bg-ink-50`} style={{ "--stagger-i": i } as React.CSSProperties}>
                   {rowContent}
                 </Link>
               ) : (
-                <div key={row.source} className="group flex items-center gap-3 rounded-md py-1">
+                <div key={row.source} className={rowClass} style={{ "--stagger-i": i } as React.CSSProperties}>
                   {rowContent}
                 </div>
               );
@@ -161,22 +167,27 @@ export default async function FinancePage() {
         )}
       </section>
 
-      <section className="rounded-xl border border-ink-200 bg-white p-5 shadow-card">
-        <h2 className="mb-4 text-sm font-semibold text-ink-800">Выручка по месяцам</h2>
+      <section className="card-hover rounded-2xl border border-ink-200 bg-white p-5 shadow-card sm:p-6">
+        <div className="mb-5 flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-lime-100 text-lime-700">
+            <CoinsIcon className="h-3.5 w-3.5" />
+          </span>
+          <h2 className="text-sm font-semibold text-ink-800">Выручка по месяцам</h2>
+        </div>
         {monthRows.length === 0 ? (
           <p className="text-sm text-ink-400">Пока нет данных</p>
         ) : (
           <div className="flex h-40 items-end gap-3">
-            {monthRows.map(([key, value]) => {
+            {monthRows.map(([key, value], i) => {
               const [year, month] = key.split("-");
               const heightPct = Math.max(4, Math.round((value / maxMonthValue) * 100));
               return (
-                <div key={key} className="flex flex-1 flex-col items-center gap-1.5">
+                <div key={key} className="group flex flex-1 flex-col items-center gap-1.5">
                   <span className="text-[11px] font-medium text-ink-600">{formatMoney(value)}</span>
                   <div className="flex h-28 w-full items-end">
                     <div
-                      className="w-full rounded-t bg-brand-500 transition-all"
-                      style={{ height: `${heightPct}%` }}
+                      className="w-full rounded-t-md bg-brand-500 transition-all duration-500 group-hover:bg-brand-600"
+                      style={{ height: `${heightPct}%`, transitionTimingFunction: "var(--ease-out)", transitionDelay: `${i * 30}ms` }}
                     />
                   </div>
                   <span className="text-[11px] text-ink-400">
@@ -190,7 +201,7 @@ export default async function FinancePage() {
       </section>
 
       {canDrillIntoContacts && (
-        <section className="rounded-xl border border-ink-200 bg-white shadow-card">
+        <section className="card-hover overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-card">
           <h2 className="border-b border-ink-100 px-5 py-4 text-sm font-semibold text-ink-800">Оплаты студентов</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -215,7 +226,11 @@ export default async function FinancePage() {
                   const colors = statusToneClasses[s.paymentStatus];
                   const href = `/contacts/${s.contact.id}`;
                   return (
-                    <tr key={i} className="cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50">
+                    <tr
+                      key={i}
+                      style={{ "--stagger-i": Math.min(i, 12) } as React.CSSProperties}
+                      className="stagger-item transition-smooth cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50"
+                    >
                       <td className="p-0">
                         <Link href={href} className="block px-5 py-2.5 font-medium text-ink-800 hover:text-brand-700">
                           {s.contact.fullName}
@@ -266,12 +281,14 @@ function MoneyStat({
   count,
   tone,
   href,
+  index = 0,
 }: {
   label: string;
   value: number;
   count?: number;
   tone: "brand" | PaymentStatus;
   href?: string;
+  index?: number;
 }) {
   const colors =
     tone === "brand"
@@ -279,24 +296,29 @@ function MoneyStat({
       : { bg: statusToneClasses[tone].bg, text: statusToneClasses[tone].text };
   const content = (
     <>
-      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${colors.bg} ${colors.text}`}>
-        <CoinsIcon className="h-[18px] w-[18px]" />
+      <div className={`mb-3.5 flex h-10 w-10 items-center justify-center rounded-xl ${colors.bg} ${colors.text}`}>
+        <CoinsIcon className="h-[19px] w-[19px]" />
       </div>
-      <div className="text-xl font-semibold text-ink-900">{formatMoney(value)}</div>
-      <div className="text-xs text-ink-500">
+      <div className="text-[22px] font-semibold leading-none tracking-tight text-ink-900">{formatMoney(value)}</div>
+      <div className="mt-1.5 text-xs text-ink-500">
         {label}
         {count !== undefined ? ` · ${count}` : ""}
       </div>
     </>
   );
+  const style = { "--stagger-i": index } as React.CSSProperties;
 
   if (href) {
     return (
-      <Link href={href} className="block rounded-xl border border-ink-200 bg-white p-4 shadow-card transition hover:shadow-pop hover:border-ink-300">
+      <Link href={href} style={style} className="stagger-item card-hover block rounded-2xl border border-ink-200 bg-white p-4 shadow-card hover:border-ink-300 sm:p-4.5">
         {content}
       </Link>
     );
   }
 
-  return <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-card">{content}</div>;
+  return (
+    <div style={style} className="stagger-item rounded-2xl border border-ink-200 bg-white p-4 shadow-card sm:p-4.5">
+      {content}
+    </div>
+  );
 }

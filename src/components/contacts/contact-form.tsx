@@ -9,8 +9,8 @@ import { AlertIcon } from "@/components/icons";
 import type { Contact } from "@/generated/prisma/client";
 
 const inputClasses =
-  "w-full rounded-md border border-ink-300 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
-const labelClasses = "mb-1 block text-sm font-medium text-ink-700";
+  "w-full rounded-lg border border-ink-300 bg-ink-50/60 px-3 py-2 text-sm outline-none transition-smooth focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-100";
+const labelClasses = "mb-1 block text-[13px] font-medium text-ink-700";
 
 export function ContactForm({
   owners,
@@ -110,7 +110,7 @@ export function ContactForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-50"
+        className="transition-smooth rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 hover:shadow-pop active:scale-[0.98] disabled:opacity-50"
       >
         {pending ? "Сохранение..." : contact ? "Сохранить" : "Создать контакт"}
       </button>

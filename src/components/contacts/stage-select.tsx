@@ -30,7 +30,7 @@ export function StageSelect({ contactId, currentStage }: { contactId: string; cu
           }
           apply(stage);
         }}
-        className="w-full rounded-md border border-ink-300 bg-white px-2 py-1 text-xs transition disabled:opacity-50"
+        className="transition-smooth w-full rounded-lg border border-ink-300 bg-white px-2 py-1 text-xs focus:border-brand-400 focus:ring-4 focus:ring-brand-100 disabled:opacity-50"
       >
         {stageOrder.map((stage) => (
           <option key={stage} value={stage}>

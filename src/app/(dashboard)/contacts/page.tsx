@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { stageLabels, stageOrder, sourceLabels, formatLabels } from "@/lib/labels";
 import { StageBadge } from "@/components/contacts/stage-badge";
+import { avatarClasses } from "@/lib/avatar";
 import { PlusIcon, SearchIcon } from "@/components/icons";
 import type { LeadSource, LessonFormat, PaymentStatus, PipelineStage } from "@/generated/prisma/enums";
 
@@ -14,18 +15,6 @@ type SearchParams = {
   hasStudent?: string;
   paymentStatus?: string;
 };
-
-const avatarPalette = [
-  "bg-brand-100 text-brand-700",
-  "bg-lime-100 text-lime-700",
-  "bg-khaki-200 text-khaki-600",
-  "bg-ink-200 text-ink-700",
-];
-
-function avatarClasses(name: string) {
-  const idx = name.charCodeAt(0) % avatarPalette.length;
-  return avatarPalette[idx];
-}
 
 export default async function ContactsPage({
   searchParams,
@@ -57,38 +46,37 @@ export default async function ContactsPage({
     take: 200,
   });
 
+  const filterInputClasses =
+    "rounded-lg border border-ink-200 bg-ink-50/60 px-2.5 py-1.5 text-sm text-ink-700 outline-none transition-smooth focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-100";
+
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-in space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-ink-900">Контакты</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Контакты</h1>
           <p className="mt-0.5 text-sm text-ink-500">{contacts.length} в списке</p>
         </div>
         <Link
           href="/contacts/new"
-          className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 active:scale-[0.98]"
+          className="transition-smooth flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 hover:shadow-pop active:scale-[0.98]"
         >
           <PlusIcon className="h-4 w-4" />
           Новый контакт
         </Link>
       </div>
 
-      <form className="flex flex-wrap items-center gap-2 rounded-xl border border-ink-200 bg-white p-3 shadow-card" method="get">
-        <div className="relative flex-1 min-w-[200px]">
+      <form className="flex flex-wrap items-center gap-2 rounded-2xl border border-ink-200 bg-white p-3 shadow-card" method="get">
+        <div className="relative min-w-[200px] flex-1">
           <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
           <input
             type="text"
             name="q"
             defaultValue={params.q}
             placeholder="Поиск по имени или телефону"
-            className="w-full rounded-md border border-ink-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            className={`${filterInputClasses} w-full pl-8`}
           />
         </div>
-        <select
-          name="stage"
-          defaultValue={params.stage ?? ""}
-          className="rounded-md border border-ink-200 px-2 py-1.5 text-sm text-ink-700 outline-none focus:border-brand-400"
-        >
+        <select name="stage" defaultValue={params.stage ?? ""} className={filterInputClasses}>
           <option value="">Все стадии</option>
           {stageOrder.map((s) => (
             <option key={s} value={s}>
@@ -96,11 +84,7 @@ export default async function ContactsPage({
             </option>
           ))}
         </select>
-        <select
-          name="source"
-          defaultValue={params.source ?? ""}
-          className="rounded-md border border-ink-200 px-2 py-1.5 text-sm text-ink-700 outline-none focus:border-brand-400"
-        >
+        <select name="source" defaultValue={params.source ?? ""} className={filterInputClasses}>
           <option value="">Все источники</option>
           {Object.entries(sourceLabels).map(([value, label]) => (
             <option key={value} value={value}>
@@ -108,11 +92,7 @@ export default async function ContactsPage({
             </option>
           ))}
         </select>
-        <select
-          name="format"
-          defaultValue={params.format ?? ""}
-          className="rounded-md border border-ink-200 px-2 py-1.5 text-sm text-ink-700 outline-none focus:border-brand-400"
-        >
+        <select name="format" defaultValue={params.format ?? ""} className={filterInputClasses}>
           <option value="">Любой формат</option>
           {Object.entries(formatLabels).map(([value, label]) => (
             <option key={value} value={value}>
@@ -122,13 +102,13 @@ export default async function ContactsPage({
         </select>
         <button
           type="submit"
-          className="rounded-md bg-ink-800 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-ink-900"
+          className="transition-smooth rounded-lg bg-ink-800 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-ink-900 active:scale-[0.98]"
         >
           Применить
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-ink-200 bg-white shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white shadow-card">
         <table className="w-full text-sm">
           <thead className="border-b border-ink-200 text-left text-xs font-medium uppercase tracking-wide text-ink-400">
             <tr>
@@ -142,21 +122,30 @@ export default async function ContactsPage({
           <tbody>
             {contacts.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-sm text-ink-400">
-                  Контакты не найдены
+                <td colSpan={5} className="px-4 py-16">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+                      <SearchIcon className="h-5 w-5" />
+                    </span>
+                    <p className="text-sm text-ink-400">Контакты не найдены</p>
+                  </div>
                 </td>
               </tr>
             )}
-            {contacts.map((contact) => (
-              <tr key={contact.id} className="border-b border-ink-100 last:border-0 hover:bg-ink-50">
+            {contacts.map((contact, i) => (
+              <tr
+                key={contact.id}
+                style={{ "--stagger-i": Math.min(i, 12) } as React.CSSProperties}
+                className="stagger-item transition-smooth border-b border-ink-100 last:border-0 hover:bg-ink-50"
+              >
                 <td className="px-4 py-2.5">
-                  <Link href={`/contacts/${contact.id}`} className="flex items-center gap-2.5">
+                  <Link href={`/contacts/${contact.id}`} className="group flex items-center gap-2.5">
                     <span
-                      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarClasses(contact.fullName)}`}
+                      className={`transition-smooth flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold group-hover:scale-105 ${avatarClasses(contact.fullName)}`}
                     >
                       {contact.fullName.slice(0, 1).toUpperCase()}
                     </span>
-                    <span className="font-medium text-ink-800 hover:text-brand-700">{contact.fullName}</span>
+                    <span className="font-medium text-ink-800 group-hover:text-brand-700">{contact.fullName}</span>
                   </Link>
                 </td>
                 <td className="px-4 py-2.5 text-ink-600">{contact.phone}</td>

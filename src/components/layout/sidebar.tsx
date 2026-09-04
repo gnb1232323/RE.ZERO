@@ -44,7 +44,7 @@ function NavLinks({ pathname, role, onNavigate }: { pathname: string; role: User
   const visibleLinks = links.filter((link) => !link.roles || link.roles.includes(role));
   return (
     <nav className="flex flex-1 flex-col gap-0.5 px-3">
-      {visibleLinks.map((link) => {
+      {visibleLinks.map((link, i) => {
         const isActive = isLinkActive(pathname, link.href);
         const Icon = link.icon;
         return (
@@ -52,13 +52,14 @@ function NavLinks({ pathname, role, onNavigate }: { pathname: string; role: User
             key={link.href}
             href={link.href}
             onClick={onNavigate}
+            style={{ "--stagger-i": i } as React.CSSProperties}
             className={
               isActive
-                ? "flex items-center gap-3 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white shadow-sm"
-                : "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink-600 transition hover:bg-ink-100 hover:text-ink-900"
+                ? "stagger-item transition-smooth relative flex items-center gap-2.5 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white shadow-sm"
+                : "stagger-item transition-smooth relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-ink-600 hover:bg-ink-100 hover:text-ink-900"
             }
           >
-            <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+            <Icon className={`h-[18px] w-[18px] flex-shrink-0 transition-smooth ${isActive ? "" : "opacity-70"}`} />
             {link.label}
           </Link>
         );
@@ -75,15 +76,17 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
     <>
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-ink-200 bg-white md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-lime-400" />
-          <span className="text-[15px] font-semibold tracking-tight text-brand-800">RE ZERO CRM</span>
+        <div className="flex items-center gap-2.5 px-5 py-5">
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-brand-800 shadow-xs">
+            <span className="h-2 w-2 rounded-full bg-lime-400" />
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight text-ink-900">RE ZERO CRM</span>
         </div>
         <NavLinks pathname={pathname} role={role} />
         <div className="mt-auto border-t border-ink-100 px-3 py-4">
-          <div className="flex items-center justify-between rounded-lg px-3 py-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
+          <div className="transition-smooth flex items-center justify-between rounded-lg px-3 py-2 hover:bg-ink-50">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-200/60">
                 {userName.slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0 overflow-hidden">
@@ -95,7 +98,7 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
               <button
                 type="submit"
                 title="Выйти"
-                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-ink-400 transition hover:bg-danger-100 hover:text-danger-600"
+                className="transition-smooth flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-ink-400 hover:bg-danger-100 hover:text-danger-600"
               >
                 <LogoutIcon className="h-4 w-4" />
               </button>
@@ -105,16 +108,18 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-white px-4 py-3 md:hidden">
-        <span className="flex items-center gap-2 text-sm font-semibold text-brand-800">
-          <span className="h-2 w-2 rounded-full bg-lime-400" />
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden">
+        <span className="flex items-center gap-2.5 text-sm font-semibold text-ink-900">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
+          </span>
           RE ZERO CRM
         </span>
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Меню"
-          className="flex h-9 w-9 items-center justify-center rounded-md text-brand-700 hover:bg-brand-50"
+          className="transition-smooth flex h-9 w-9 items-center justify-center rounded-md text-brand-700 hover:bg-brand-50 active:scale-95"
         >
           <MenuIcon />
         </button>
@@ -134,15 +139,17 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
           }`}
         >
           <div className="flex items-center justify-between px-5 py-5">
-            <span className="flex items-center gap-2 text-sm font-semibold text-brand-800">
-              <span className="h-2.5 w-2.5 rounded-full bg-lime-400" />
+            <span className="flex items-center gap-2.5 text-sm font-semibold text-ink-900">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-800">
+                <span className="h-2 w-2 rounded-full bg-lime-400" />
+              </span>
               RE ZERO CRM
             </span>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
               aria-label="Закрыть"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-ink-500 transition hover:bg-ink-100"
+              className="transition-smooth flex h-8 w-8 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100 active:scale-95"
             >
               <CloseIcon className="h-4 w-4" />
             </button>
