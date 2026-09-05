@@ -31,7 +31,7 @@ export async function markLessonStatus(lessonId: string, status: LessonStatus, w
     if (newBalance < 0) {
       await notify({
         contactId,
-        type: "debt",
+        type: "debt_negative",
         title: `Задолженность: ${studentName}`,
         body: `Баланс ушёл в минус на ${formatMoney(Math.abs(newBalance))}. Нужно напомнить об оплате.`,
         link: `/contacts/${contactId}`,
@@ -39,7 +39,7 @@ export async function markLessonStatus(lessonId: string, status: LessonStatus, w
     } else if (newBalance < price) {
       await notify({
         contactId,
-        type: "debt",
+        type: "debt_approaching",
         title: `Скоро закончится оплата: ${studentName}`,
         body: `Остался баланс на ${formatMoney(newBalance)} — меньше одного урока.`,
         link: `/contacts/${contactId}`,
