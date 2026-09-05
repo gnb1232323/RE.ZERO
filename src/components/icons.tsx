@@ -176,6 +176,16 @@ export function TeacherIcon({ className = base }: IconProps) {
   );
 }
 
+export function HistoryIcon({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 3a7 7 0 11-6.75 5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M2.5 3.3V7h3.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 6.5v4l2.8 1.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function BellIcon({ className = base }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

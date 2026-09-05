@@ -2,8 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/dal";
 import { computeEngagement } from "@/lib/engagement";
-import { formatDateAlmaty } from "@/lib/date";
+import {
+  formatDateAlmaty,
+  formatTimeAlmaty,
+  getAlmatyDateKey,
+  getAlmatyMonthBounds,
+  daysInAlmatyMonth,
+  firstWeekdayMonFirst,
+} from "@/lib/date";
 import { TeacherIcon } from "@/components/icons";
+import { LessonCalendar, type CalendarDay } from "@/components/teaching/lesson-calendar";
 
 const riskColors: Record<string, string> = {
   LOW: "bg-lime-100 text-lime-700",
@@ -12,8 +20,23 @@ const riskColors: Record<string, string> = {
 };
 const riskLabels: Record<string, string> = { LOW: "Низкий риск", MEDIUM: "Средний риск", HIGH: "Высокий риск" };
 
-export default async function TeachingPage() {
+function parseMonthParam(raw: string | undefined) {
+  if (raw && /^\d{4}-\d{2}$/.test(raw)) {
+    const [y, m] = raw.split("-").map(Number);
+    if (m >= 1 && m <= 12) return { year: y, month: m - 1 };
+  }
+  const [y, m] = getAlmatyDateKey(new Date()).split("-").map(Number);
+  return { year: y, month: m - 1 };
+}
+
+export default async function TeachingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ m?: string }>;
+}) {
   const user = await requireRole("OWNER", "TEACHER");
+  const { m } = await searchParams;
+  const { year, month } = parseMonthParam(m);
 
   const contacts = await prisma.contact.findMany({
     where: {
@@ -47,12 +70,48 @@ export default async function TeachingPage() {
     }))
   );
 
+  const { start, end } = getAlmatyMonthBounds(year, month);
+  const monthLessons = await prisma.lessonSlot.findMany({
+    where: {
+      scheduledAt: { gte: start, lt: end },
+      ...(user.role === "TEACHER" ? { teacherId: user.id } : {}),
+    },
+    orderBy: { scheduledAt: "asc" },
+    select: {
+      scheduledAt: true,
+      student: { select: { contact: { select: { fullName: true } } } },
+      teacher: { select: { name: true } },
+    },
+  });
+
+  const lessonsByDate = new Map<string, { time: string; studentName: string; teacherName?: string }[]>();
+  for (const lesson of monthLessons) {
+    const key = getAlmatyDateKey(lesson.scheduledAt);
+    const list = lessonsByDate.get(key) ?? [];
+    list.push({
+      time: formatTimeAlmaty(lesson.scheduledAt),
+      studentName: lesson.student.contact.fullName,
+      teacherName: user.role === "OWNER" ? lesson.teacher?.name : undefined,
+    });
+    lessonsByDate.set(key, list);
+  }
+
+  const totalDays = daysInAlmatyMonth(year, month);
+  const leadingBlanks = firstWeekdayMonFirst(year, month);
+  const days: CalendarDay[] = Array.from({ length: totalDays }, (_, i) => {
+    const day = i + 1;
+    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return { day, dateKey, lessons: lessonsByDate.get(dateKey) ?? [] };
+  });
+
   return (
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Мои ученики</h1>
         <p className="mt-0.5 text-sm text-ink-500">{rows.length} прикреплено</p>
       </div>
+
+      <LessonCalendar year={year} month={month} leadingBlanks={leadingBlanks} days={days} />
 
       {rows.length === 0 ? (
         <p className="text-sm text-ink-400">Пока нет прикреплённых учеников.</p>

@@ -18,6 +18,7 @@ import {
   TeacherIcon,
   AlertIcon,
   TrendUpIcon,
+  HistoryIcon,
 } from "@/components/icons";
 import { NotificationBell } from "@/components/layout/notification-bell";
 
@@ -39,6 +40,7 @@ const links: { href: string; label: string; icon: typeof DashboardIcon; roles?: 
   { href: "/debt", label: "Задолженность", icon: AlertIcon, roles: ["OWNER", "SALES", "TEACHER"] },
   { href: "/engagement", label: "Вовлечённость", icon: TrendUpIcon, roles: ["OWNER", "SALES", "TEACHER"] },
   { href: "/teaching", label: "Мои ученики", icon: TeacherIcon, roles: ["TEACHER"] },
+  { href: "/history", label: "История действий", icon: HistoryIcon, roles: ["OWNER"] },
   { href: "/settings", label: "Настройки", icon: SettingsIcon },
 ];
 
