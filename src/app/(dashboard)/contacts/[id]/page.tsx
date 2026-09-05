@@ -6,6 +6,8 @@ import { avatarClasses } from "@/lib/avatar";
 import { ContactForm } from "@/components/contacts/contact-form";
 import { ActivityTimeline } from "@/components/contacts/activity-timeline";
 import { StudentPanel, type SerializedStudent } from "@/components/contacts/student-panel";
+import { IntakePanel } from "@/components/contacts/intake-panel";
+import { TouchpointButton } from "@/components/contacts/touchpoint-button";
 import { TaskForm } from "@/components/tasks/task-form";
 import { TaskList } from "@/components/tasks/task-list";
 import { StageSelect } from "@/components/contacts/stage-select";
@@ -20,9 +22,9 @@ export default async function ContactDetailPage({
   await requireRole("OWNER", "SALES");
   const { id } = await params;
 
-  const [contact, users, activities, tasks, student] = await Promise.all([
+  const [contact, users, activities, tasks, student, intake] = await Promise.all([
     prisma.contact.findUnique({ where: { id } }),
-    prisma.user.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { deletedAt: null }, select: { id: true, name: true, role: true }, orderBy: { name: "asc" } }),
     prisma.activity.findMany({
       where: { contactId: id },
       include: { author: { select: { name: true } } },
@@ -37,16 +39,21 @@ export default async function ContactDetailPage({
       where: { contactId: id },
       include: { receipts: { orderBy: { createdAt: "desc" } } },
     }),
+    prisma.intakeProfile.findUnique({ where: { contactId: id } }),
   ]);
 
   if (!contact || contact.deletedAt) {
     notFound();
   }
 
+  const teachers = users.filter((u) => u.role === "TEACHER");
+
   const serializedStudent: SerializedStudent | null = student
     ? {
         ...student,
         paymentAmount: student.paymentAmount.toString(),
+        pricePerLesson: student.pricePerLesson ? student.pricePerLesson.toString() : null,
+        lessonBalance: student.lessonBalance.toString(),
         receipts: student.receipts.map((receipt) => ({
           ...receipt,
           paymentAmount: receipt.paymentAmount.toString(),
@@ -85,7 +92,12 @@ export default async function ContactDetailPage({
         <div className="space-y-6 lg:col-span-2">
           <section className="card-hover rounded-2xl border border-ink-200 bg-white p-5 shadow-card sm:p-6">
             <h2 className="mb-4 text-sm font-semibold text-ink-800">Профиль</h2>
-            <ContactForm owners={users} contact={contact} />
+            <ContactForm owners={users} teachers={teachers} contact={contact} />
+          </section>
+
+          <section className="card-hover rounded-2xl border border-ink-200 bg-white p-5 shadow-card sm:p-6">
+            <h2 className="mb-4 text-sm font-semibold text-ink-800">Анкета первого контакта</h2>
+            <IntakePanel contactId={contact.id} intake={intake} />
           </section>
 
           <section className="card-hover rounded-2xl border border-ink-200 bg-white p-5 shadow-card sm:p-6">
@@ -104,6 +116,7 @@ export default async function ContactDetailPage({
             </h2>
             <div className="space-y-3">
               <TaskForm contactId={contact.id} users={users} />
+              <TouchpointButton contactId={contact.id} />
               <TaskList tasks={tasks} users={users} />
             </div>
           </section>

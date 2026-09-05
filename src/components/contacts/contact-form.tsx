@@ -14,9 +14,11 @@ const labelClasses = "mb-1 block text-[13px] font-medium text-ink-700";
 
 export function ContactForm({
   owners,
+  teachers,
   contact,
 }: {
   owners: { id: string; name: string }[];
+  teachers: { id: string; name: string }[];
   contact?: Contact;
 }) {
   const action = contact ? updateContact : createContact;
@@ -57,6 +59,7 @@ export function ContactForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Имя" name="fullName" required defaultValue={contact?.fullName} errors={state?.errors?.fullName} />
         <PhoneField defaultValue={contact?.phone} errors={state?.errors?.phone} />
+        <Field label="Возраст" name="age" type="number" defaultValue={contact?.age?.toString() ?? ""} errors={state?.errors?.age} />
         <Field label="Email" name="email" type="email" defaultValue={contact?.email ?? ""} errors={state?.errors?.email} />
         <Field label="Instagram" name="instagram" defaultValue={contact?.instagram ?? ""} errors={state?.errors?.instagram} />
         <Field label="WhatsApp" name="whatsapp" defaultValue={contact?.whatsapp ?? ""} errors={state?.errors?.whatsapp} />
@@ -99,6 +102,18 @@ export function ContactForm({
             {owners.map((owner) => (
               <option key={owner.id} value={owner.id}>
                 {owner.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClasses}>Учитель</label>
+          <select name="teacherId" defaultValue={contact?.teacherId ?? ""} className={inputClasses}>
+            <option value="">Не назначен</option>
+            {teachers.map((teacher) => (
+              <option key={teacher.id} value={teacher.id}>
+                {teacher.name}
               </option>
             ))}
           </select>

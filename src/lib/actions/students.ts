@@ -5,6 +5,8 @@ import { verifySession } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { StudentFormSchema, type StudentFormState } from "@/lib/validations/students";
 import { findOrCreateStudentFolder, uploadReceipt } from "@/lib/google-drive";
+import { generateStudentCode } from "@/lib/student-code";
+import { generateLessonDates } from "@/lib/lesson-schedule";
 
 const RECEIPT_MAX_BYTES = 15 * 1024 * 1024;
 const RECEIPT_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
@@ -22,6 +24,9 @@ export async function upsertStudent(_state: StudentFormState, formData: FormData
     paymentAmount: formData.get("paymentAmount"),
     paymentStatus: formData.get("paymentStatus"),
     paymentNotes: formData.get("paymentNotes") ?? "",
+    pricePerLesson: formData.get("pricePerLesson") ?? "",
+    lessonDays: formData.getAll("lessonDays").map(String),
+    scheduleStartDate: formData.get("scheduleStartDate") ?? "",
   });
 
   if (!validated.success) {
@@ -31,7 +36,7 @@ export async function upsertStudent(_state: StudentFormState, formData: FormData
   const data = validated.data;
 
   const [contact, existing] = await Promise.all([
-    prisma.contact.findUniqueOrThrow({ where: { id: data.contactId }, select: { fullName: true } }),
+    prisma.contact.findUniqueOrThrow({ where: { id: data.contactId }, select: { fullName: true, teacherId: true } }),
     prisma.student.findUnique({ where: { contactId: data.contactId } }),
   ]);
 
@@ -58,6 +63,11 @@ export async function upsertStudent(_state: StudentFormState, formData: FormData
     }
   }
 
+  const paymentDelta = isNewPayment ? Number(data.paymentAmount) - (existing ? Number(existing.paymentAmount) : 0) : 0;
+  const pricePerLesson = data.pricePerLesson ? Number(data.pricePerLesson) : existing?.pricePerLesson ? Number(existing.pricePerLesson) : null;
+  const newLessonBalance = Number(existing?.lessonBalance ?? 0) + Math.max(0, paymentDelta);
+  const code = existing?.code ?? (await generateStudentCode());
+
   const student = await prisma.student.upsert({
     where: { contactId: data.contactId },
     update: {
@@ -69,9 +79,12 @@ export async function upsertStudent(_state: StudentFormState, formData: FormData
       paymentAmount: data.paymentAmount,
       paymentStatus: data.paymentStatus,
       paymentNotes: data.paymentNotes || null,
+      pricePerLesson,
+      lessonBalance: newLessonBalance,
     },
     create: {
       contactId: data.contactId,
+      code,
       courseStartDate: new Date(data.courseStartDate),
       targetLevel: data.targetLevel || null,
       targetDate: data.targetDate ? new Date(data.targetDate) : null,
@@ -80,8 +93,25 @@ export async function upsertStudent(_state: StudentFormState, formData: FormData
       paymentAmount: data.paymentAmount,
       paymentStatus: data.paymentStatus,
       paymentNotes: data.paymentNotes || null,
+      pricePerLesson,
+      lessonBalance: newLessonBalance,
     },
   });
+
+  if (paymentDelta > 0 && pricePerLesson && pricePerLesson > 0 && data.lessonDays && data.lessonDays.length > 0 && data.scheduleStartDate) {
+    const lessonsToCreate = Math.floor(paymentDelta / pricePerLesson);
+    const weekdays = data.lessonDays.map(Number);
+    const dates = generateLessonDates(new Date(data.scheduleStartDate), weekdays, lessonsToCreate);
+    if (dates.length > 0) {
+      await prisma.lessonSlot.createMany({
+        data: dates.map((scheduledAt) => ({
+          studentId: student.id,
+          teacherId: contact.teacherId,
+          scheduledAt,
+        })),
+      });
+    }
+  }
 
   if (hasReceiptFile) {
     const file = receiptFile as File;

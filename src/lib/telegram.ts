@@ -3,6 +3,7 @@ const CHAT_IDS = (process.env.TELEGRAM_CHAT_IDS ?? "")
   .split(",")
   .map((id) => id.trim())
   .filter(Boolean);
+const TOPIC_ID = process.env.TELEGRAM_TOPIC_ID ? Number(process.env.TELEGRAM_TOPIC_ID) : undefined;
 
 export async function notifyTelegram(text: string) {
   if (!BOT_TOKEN || CHAT_IDS.length === 0) return;
@@ -12,7 +13,12 @@ export async function notifyTelegram(text: string) {
       fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "HTML",
+          ...(TOPIC_ID ? { message_thread_id: TOPIC_ID } : {}),
+        }),
       }).catch((error) => {
         console.error("Failed to send Telegram notification", error);
       })

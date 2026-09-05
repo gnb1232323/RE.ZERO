@@ -24,6 +24,8 @@ export async function createContact(_state: ContactFormState, formData: FormData
     sourceDetail: formData.get("sourceDetail") ?? "",
     format: formData.get("format") ?? "",
     ownerId: formData.get("ownerId") ?? "",
+    teacherId: formData.get("teacherId") ?? "",
+    age: formData.get("age") || "",
   });
 
   if (!validated.success) {
@@ -54,6 +56,8 @@ export async function createContact(_state: ContactFormState, formData: FormData
       sourceDetail: emptyToUndefined(data.sourceDetail),
       format: data.format || undefined,
       ownerId: emptyToUndefined(data.ownerId),
+      teacherId: emptyToUndefined(data.teacherId),
+      age: data.age === "" || data.age === undefined ? undefined : data.age,
     },
   });
 
@@ -87,6 +91,8 @@ export async function updateContact(_state: ContactFormState, formData: FormData
     sourceDetail: formData.get("sourceDetail") ?? "",
     format: formData.get("format") ?? "",
     ownerId: formData.get("ownerId") ?? "",
+    teacherId: formData.get("teacherId") ?? "",
+    age: formData.get("age") || "",
   });
 
   if (!validated.success) {
@@ -108,6 +114,8 @@ export async function updateContact(_state: ContactFormState, formData: FormData
       sourceDetail: emptyToUndefined(data.sourceDetail) ?? null,
       format: data.format || null,
       ownerId: emptyToUndefined(data.ownerId) ?? null,
+      teacherId: emptyToUndefined(data.teacherId) ?? null,
+      age: data.age === "" || data.age === undefined ? null : data.age,
     },
   });
 

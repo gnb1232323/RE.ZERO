@@ -8,8 +8,10 @@ import { formatMoney } from "@/lib/money";
 import type { PaymentStatus, Receipt, Student } from "@/generated/prisma/client";
 
 export type SerializedReceipt = Omit<Receipt, "paymentAmount"> & { paymentAmount: string };
-export type SerializedStudent = Omit<Student, "paymentAmount"> & {
+export type SerializedStudent = Omit<Student, "paymentAmount" | "pricePerLesson" | "lessonBalance"> & {
   paymentAmount: string;
+  pricePerLesson: string | null;
+  lessonBalance: string;
   receipts?: SerializedReceipt[];
 };
 
@@ -18,6 +20,16 @@ const paymentStatusColors: Record<PaymentStatus, { bg: string; text: string; dot
   PARTIAL: { bg: "bg-khaki-100", text: "text-khaki-600", dot: "bg-khaki-400" },
   PAID: { bg: "bg-lime-100", text: "text-lime-700", dot: "bg-lime-500" },
 };
+
+const WEEKDAYS = [
+  { value: "1", label: "Пн" },
+  { value: "2", label: "Вт" },
+  { value: "3", label: "Ср" },
+  { value: "4", label: "Чт" },
+  { value: "5", label: "Пт" },
+  { value: "6", label: "Сб" },
+  { value: "0", label: "Вс" },
+];
 
 const fieldInputClasses =
   "w-full rounded-lg border border-ink-300 bg-ink-50/60 px-2.5 py-1.5 text-sm outline-none transition-smooth focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-100";
@@ -46,9 +58,8 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
     return (
       <div className="animate-fade-in space-y-3 text-sm">
         <div className="flex items-center justify-between">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusColors.bg} ${statusColors.text}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${statusColors.dot}`} />
-            {paymentStatusLabels[student.paymentStatus]} · {formatMoney(student.paymentAmount)}
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600">
+            Код {student.code}
           </span>
           <button
             type="button"
@@ -59,10 +70,17 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
           </button>
         </div>
 
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusColors.bg} ${statusColors.text}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${statusColors.dot}`} />
+          {paymentStatusLabels[student.paymentStatus]} · {formatMoney(student.paymentAmount)}
+        </span>
+
         <div className="divide-y divide-ink-100 rounded-xl border border-ink-100 bg-ink-50/50 px-3">
           <InfoRow label="Начало курса" value={toDateInputValue(student.courseStartDate) || "—"} />
           {student.targetLevel && <InfoRow label="Целевой уровень" value={student.targetLevel} />}
           {student.currentLevel && <InfoRow label="Текущий уровень" value={student.currentLevel} />}
+          {student.pricePerLesson && <InfoRow label="Цена урока" value={formatMoney(student.pricePerLesson)} />}
+          <InfoRow label="Баланс уроков" value={formatMoney(student.lessonBalance)} />
         </div>
 
         {student.progressNotes && (
@@ -163,6 +181,44 @@ export function StudentPanel({ contactId, student }: { contactId: string; studen
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-brand-200 bg-brand-50 p-3">
+        <p className="mb-2 text-xs font-semibold text-brand-800">Абонемент (при новой оплате)</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={fieldLabelClasses}>Цена урока</label>
+            <input
+              name="pricePerLesson"
+              type="number"
+              step="0.01"
+              defaultValue={student?.pricePerLesson ?? ""}
+              placeholder="Например, 3000"
+              className={fieldInputClasses}
+            />
+          </div>
+          <div>
+            <label className={fieldLabelClasses}>Начало расписания</label>
+            <input name="scheduleStartDate" type="date" className={fieldInputClasses} />
+          </div>
+        </div>
+        <div className="mt-2">
+          <label className={fieldLabelClasses}>Дни занятий</label>
+          <div className="flex flex-wrap gap-2">
+            {WEEKDAYS.map((day) => (
+              <label
+                key={day.value}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md border border-ink-200 bg-white px-2 py-1 text-xs text-ink-600 has-[:checked]:border-brand-400 has-[:checked]:bg-brand-100 has-[:checked]:text-brand-700"
+              >
+                <input type="checkbox" name="lessonDays" value={day.value} className="h-3 w-3" />
+                {day.label}
+              </label>
+            ))}
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-ink-400">
+          При новой оплате система сама создаст нужное число уроков (сумма ÷ цена урока) на выбранные дни, начиная с указанной даты.
+        </p>
       </div>
 
       <div>

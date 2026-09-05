@@ -8,6 +8,7 @@ const pipelineStageValues = Object.values(PipelineStage) as [PipelineStage, ...P
 export const ContactFormSchema = z.object({
   fullName: z.string().trim().min(2, { error: "Введите имя (минимум 2 символа)." }),
   phone: z.string().trim().min(5, { error: "Введите телефон." }),
+  age: z.union([z.coerce.number().int().min(5).max(99), z.literal("")]).optional(),
   email: z.union([z.email({ error: "Некорректный email." }), z.literal("")]).optional(),
   instagram: z.string().trim().optional(),
   whatsapp: z.string().trim().optional(),
@@ -16,6 +17,7 @@ export const ContactFormSchema = z.object({
   sourceDetail: z.string().trim().optional(),
   format: z.union([z.enum(lessonFormatValues), z.literal("")]).optional(),
   ownerId: z.union([z.string(), z.literal("")]).optional(),
+  teacherId: z.union([z.string(), z.literal("")]).optional(),
 });
 
 export type ContactFormState =

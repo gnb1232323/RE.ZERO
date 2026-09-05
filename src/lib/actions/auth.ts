@@ -21,7 +21,7 @@ export async function login(_state: LoginFormState, formData: FormData): Promise
   const { email, password } = validatedFields.data;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
+  if (!user || user.deletedAt) {
     return { message: "Неверный email или пароль." };
   }
 

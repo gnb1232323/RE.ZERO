@@ -165,3 +165,22 @@ export function CloseIcon({ className = base }: IconProps) {
     </svg>
   );
 }
+
+export function TeacherIcon({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.5 6.5L10 3l7.5 3.5L10 10 2.5 6.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M5.5 8.2v3.3c0 1.4 2 2.5 4.5 2.5s4.5-1.1 4.5-2.5V8.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M17.5 6.5V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BellIcon({ className = base }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 3.5c-2 0-3.5 1.6-3.5 3.6v2.4c0 .6-.2 1.2-.6 1.7l-.7.9c-.5.6 0 1.4.7 1.4h8.2c.7 0 1.2-.8.7-1.4l-.7-.9c-.4-.5-.6-1.1-.6-1.7V7.1c0-2-1.5-3.6-3.5-3.6z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8.3 15.5a1.7 1.7 0 003.4 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

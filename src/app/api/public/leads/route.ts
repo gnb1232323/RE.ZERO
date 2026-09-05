@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PublicLeadSchema } from "@/lib/validations/public-lead";
 import { notifyTelegram } from "@/lib/telegram";
-import { formatLabels } from "@/lib/labels";
-import type { LessonFormat } from "@/generated/prisma/enums";
 
 const CRM_BASE_URL = process.env.CRM_BASE_URL ?? "https://crm.159-65-231-17.sslip.io";
 
@@ -89,8 +87,9 @@ export async function POST(request: NextRequest) {
     data: {
       fullName: data.fullName,
       phone: data.phone,
+      age: data.age,
+      email: data.email || null,
       source: "WEBSITE",
-      format: data.format || null,
       sourceDetail: data.comment || null,
       stage: "LEAD",
     },
@@ -104,12 +103,10 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const formatLabel = data.format ? formatLabels[data.format as LessonFormat] : "не указан";
   await notifyTelegram(
     `🆕 <b>Новый клиент с сайта</b>\n` +
-      `${data.fullName}\n` +
-      `Тел: ${data.phone}\n` +
-      `Формат: ${formatLabel}${data.comment ? `\nКомментарий: ${data.comment}` : ""}\n\n` +
+      `${data.fullName}, ${data.age} лет\n` +
+      `Тел: ${data.phone}${data.email ? `\nEmail: ${data.email}` : ""}${data.comment ? `\nКомментарий: ${data.comment}` : ""}\n\n` +
       `${CRM_BASE_URL}/contacts/${contact.id}`
   );
 

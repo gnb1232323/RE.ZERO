@@ -11,9 +11,9 @@ const LEADS_CHART_DAYS = 14;
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   const role = user?.role ?? "OWNER";
-  const canSeeMoney = role !== "SALES";
-  const canSeeContactsLinks = role !== "MARKETING";
-  const canSeeTasks = role !== "MARKETING";
+  const canSeeMoney = role === "OWNER" || role === "MARKETING";
+  const canSeeContactsLinks = role === "OWNER" || role === "SALES";
+  const canSeeTasks = role === "OWNER" || role === "SALES";
 
   const [stageCounts, overdueTasks, todayTasks, studentCount, students, recentLeads] = await Promise.all([
     prisma.contact.groupBy({

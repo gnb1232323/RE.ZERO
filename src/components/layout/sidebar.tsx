@@ -15,12 +15,19 @@ import {
   LogoutIcon,
   MenuIcon,
   CloseIcon,
+  TeacherIcon,
+  AlertIcon,
+  TrendUpIcon,
 } from "@/components/icons";
+import { NotificationBell } from "@/components/layout/notification-bell";
+
+type NotificationItem = { id: string; title: string; body: string | null; link: string | null; createdAt: string };
 
 const roleLabels: Record<UserRole, string> = {
   OWNER: "Владелец",
   SALES: "Отдел продаж",
   MARKETING: "Отдел маркетинга",
+  TEACHER: "Учитель",
 };
 
 const links: { href: string; label: string; icon: typeof DashboardIcon; roles?: UserRole[] }[] = [
@@ -29,6 +36,9 @@ const links: { href: string; label: string; icon: typeof DashboardIcon; roles?: 
   { href: "/contacts/kanban", label: "Канбан", icon: KanbanIcon, roles: ["OWNER", "SALES"] },
   { href: "/tasks", label: "Задачи", icon: TasksIcon, roles: ["OWNER", "SALES"] },
   { href: "/finance", label: "Финансы", icon: FinanceIcon, roles: ["OWNER", "MARKETING"] },
+  { href: "/debt", label: "Задолженность", icon: AlertIcon, roles: ["OWNER", "SALES", "TEACHER"] },
+  { href: "/engagement", label: "Вовлечённость", icon: TrendUpIcon, roles: ["OWNER", "SALES", "TEACHER"] },
+  { href: "/teaching", label: "Мои ученики", icon: TeacherIcon, roles: ["TEACHER"] },
   { href: "/settings", label: "Настройки", icon: SettingsIcon },
 ];
 
@@ -68,7 +78,15 @@ function NavLinks({ pathname, role, onNavigate }: { pathname: string; role: User
   );
 }
 
-export function Sidebar({ userName, role }: { userName: string; role: UserRole }) {
+export function Sidebar({
+  userName,
+  role,
+  notifications,
+}: {
+  userName: string;
+  role: UserRole;
+  notifications: NotificationItem[];
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -76,11 +94,14 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
     <>
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-ink-200 bg-white md:flex">
-        <div className="flex items-center gap-2.5 px-5 py-5">
-          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-brand-800 shadow-xs">
-            <span className="h-2 w-2 rounded-full bg-lime-400" />
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight text-ink-900">RE ZERO CRM</span>
+        <div className="flex items-center justify-between px-5 py-5">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-brand-800 shadow-xs">
+              <span className="h-2 w-2 rounded-full bg-lime-400" />
+            </span>
+            <span className="text-[15px] font-semibold tracking-tight text-ink-900">RE ZERO CRM</span>
+          </div>
+          <NotificationBell initial={notifications} align="left" />
         </div>
         <NavLinks pathname={pathname} role={role} />
         <div className="mt-auto border-t border-ink-100 px-3 py-4">
@@ -115,14 +136,17 @@ export function Sidebar({ userName, role }: { userName: string; role: UserRole }
           </span>
           RE ZERO CRM
         </span>
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Меню"
-          className="transition-smooth flex h-9 w-9 items-center justify-center rounded-md text-brand-700 hover:bg-brand-50 active:scale-95"
-        >
-          <MenuIcon />
-        </button>
+        <div className="flex items-center gap-1">
+          <NotificationBell initial={notifications} />
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Меню"
+            className="transition-smooth flex h-9 w-9 items-center justify-center rounded-md text-brand-700 hover:bg-brand-50 active:scale-95"
+          >
+            <MenuIcon />
+          </button>
+        </div>
       </header>
 
       {/* Mobile drawer — always mounted, animated via transform/opacity so open/close is smooth */}
